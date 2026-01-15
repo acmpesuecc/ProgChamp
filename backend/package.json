@@ -1,0 +1,25 @@
+{
+  "name": "backend",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.31.8"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.969.0",
+    "@libsql/client": "^0.17.0",
+    "drizzle-orm": "^0.45.1",
+    "hono": "^4.11.4",
+    "zod": "^4.3.5"
+  }
+}
