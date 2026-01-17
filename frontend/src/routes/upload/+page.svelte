@@ -1,26 +1,24 @@
 <script lang="ts">
+  import { submissions } from '../../lib/stores/submissions.ts';
 
-    import { submissions } from '../../lib/stores/submissions.ts';
+  let title = "";
+  let description = "";
+  let url = "";
 
-    let title: string = "";
-    let description: string = "";
-    let url: string = "";
+  let thumbnail: File | null = null;
+  let preview: string | null = null;
 
-    let thumbnail: File | null = null;
-    let preview: string | null = null;
+  function handleFile(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (!input.files) return;
 
-    function handleFile(e: Event) {
-        const input = e.target as HTMLInputElement;
-        if (!input.files) return;
-
-        thumbnail = input.files[0];
-
-        if (thumbnail) {
-            preview = URL.createObjectURL(thumbnail);
-        }
-    }
+    thumbnail = input.files[0];
+    preview = URL.createObjectURL(thumbnail);
+  }
 
   function handleSubmit() {
+    if (!title || !description || !url || !thumbnail) return;
+
     submissions.update(list => [
       ...list,
       {
@@ -35,85 +33,87 @@
 
     alert("Submitted for review!");
 
+    // cleanup
     title = "";
     description = "";
     url = "";
     thumbnail = null;
     preview = null;
   }
-
 </script>
 
+<h1>Upload Your Game</h1>
 
-<h1> Upload Your Game! </h1>
+<form class="upload-form" on:submit|preventDefault={handleSubmit}>
+  <label>
+    Title
+    <input bind:value={title} required />
+  </label>
 
-<form on:submit|preventDefault={handleSubmit} class="upload-form">
-    <label>
-        Game Title:
-        <input type="text" bind:value={title} required />
-    </label>
+  <label>
+    Description
+    <textarea bind:value={description} required></textarea>
+  </label>
 
-    <label>
-        Description:
-        <textarea bind:value={description} required></textarea>
-    </label>
+  <label>
+    Game URL
+    <input bind:value={url} required />
+  </label>
 
-    <label>
-        Game URL:
-        <input type="url" bind:value={url} required />
-    </label>
+  <label>
+    Thumbnail
+    <input type="file" accept="image/*" on:change={handleFile} required />
+  </label>
 
-    <label>
-        Thumbnail Image:
-        <input type="file" accept="image/*" on:change={handleFile} required />
-        {#if preview}
-            <img src={preview} alt="Thumbnail Preview" width="100" />
-        {/if}
-        
-    </label>
+  {#if preview}
+    <img src={preview} alt="Preview" class="preview" />
+  {/if}
 
-    <button type="submit">Upload Game</button>
+  <button type="submit">Submit</button>
 </form>
 
 <style>
-    h1 {
-        text-align: center;
-        color: aliceblue;
-    }
+  h1 {
+    text-align: center;
+    color: aliceblue;
+  }
 
-    .upload-form {
-        display: flex;
-        flex-direction: column;
-        max-width: 500px;
-        margin: 2rem auto;
-        padding: 1rem;
-        background-color: #2c2c2c;
-        border-radius: 8px;
-    }
+  .upload-form {
+    max-width: 500px;
+    margin: 2rem auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: #2c2c2c;
+    padding: 1rem;
+    border-radius: 8px;
+  }
 
-    label {
-        margin-bottom: 1rem;
-        color: aliceblue;
-    }
+  label {
+    color: aliceblue;
+    display: flex;
+    flex-direction: column;
+  }
 
-    input, textarea {
-        width: 100%;
-        padding: 0.5rem;
-        margin-top: 0.5rem;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-    }
+  input, textarea {
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: none;
+  }
 
-    button {
-        padding: 0.7rem;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
+  button {
+    padding: 0.7rem;
+    background: #4CAF50;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+  }
 
-    button:hover {
-        background-color: #45a049;
-    }
+  .preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
 </style>

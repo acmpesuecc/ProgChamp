@@ -1,18 +1,5 @@
 <script lang="ts">
   import { submissions } from '../../lib/stores/submissions.ts';
-  import { redirect } from '@sveltejs/kit';
-  import type { PageLoad } from './$types';
-  import { get } from 'svelte/store';
-  import { user } from '../../lib/stores/user.js';
-
-export const load: PageLoad = () => {
-  const currentUser = get(user);
-
-  if (currentUser.role !== 'admin') {
-    throw redirect(302, '/');
-  }
-};
-
 
   function approve(id: string) {
     submissions.update(list =>
@@ -30,7 +17,7 @@ export const load: PageLoad = () => {
 <h1>Admin Panel</h1>
 
 {#if $submissions.length === 0}
-  <p>No pending submissions 🎉</p>
+  <p>No pending submissions... :D</p>
 {:else}
   <div class="list">
     {#each $submissions as game}
