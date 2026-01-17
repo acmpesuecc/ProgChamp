@@ -50,7 +50,7 @@
 <main>
     <div class = "iframe-card">
         
-        <button class = "fullscreen-btn" on:click={goFullscreen()}>
+        <button class = "fullscreen-btn" on:click={goFullscreen}>
           ⛶ Fullscreen!
         </button> 
         <br>
@@ -88,7 +88,12 @@
     }
 
     .about {
+        margin: 0 auto;
+        width: 75%;
         color: cyan;
+        border: 1px solid;
+        border-radius: 8px;
+        border-color: cyan;
     }
 
     .overlay {
