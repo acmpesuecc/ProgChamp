@@ -1,17 +1,22 @@
 <script>
     import '../app.css'
     import { user } from '$lib/stores/user.js';
+
+
 </script>
 
 <header>
-
-    <button class = "login-btn">
-        Sign in with Google
-    </button>
+    
     <button class = "profile-btn">
-        {$user.name}
+        {$user? $user.name : 'Guest'}
     </button>
 
+    {#if !$user}
+        <button class = "login-btn">
+            Sign in with Google
+        </button>
+    {/if}
+    
     <a href = "/">
         <h1> Progchamp! </h1>
     </a>
@@ -19,11 +24,11 @@
      <nav>
         <a href="/">Home</a>
 
-        {#if $user.role === "dev"}
+        {#if $user?.role === "dev"}
             | <a href="/upload">Upload</a>
         {/if}
 
-        {#if $user.role === "admin"}
+        {#if $user?.role === "admin"}
             | <a href="/admin">Admin</a>
         {/if}
     </nav>
@@ -55,7 +60,7 @@
 	}
 
     .login-btn, .profile-btn {
-        position: fixed;
+        position: absolute;
         right: 10px;
         width: 120px;
         height: 30px;
