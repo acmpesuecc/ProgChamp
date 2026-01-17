@@ -4,6 +4,14 @@
 </script>
 
 <header>
+
+    <button class = "login-btn">
+        Sign in with Google
+    </button>
+    <button class = "profile-btn">
+        {$user.name}
+    </button>
+
     <a href = "/">
         <h1> Progchamp! </h1>
     </a>
@@ -45,6 +53,33 @@
 		font-size: 3em;
 		font-weight: 100;
 	}
+
+    .login-btn, .profile-btn {
+        position: fixed;
+        right: 10px;
+        width: 120px;
+        height: 30px;
+        border: 1px solid;
+        border-color: #8c5cd9;
+        border-radius: 8px;
+        background-color: #0a0a0f;
+        color: lavender;
+    }
+
+    .profile-btn{
+        top: 10px;
+    }
+
+    .login-btn{
+        top: 50px;
+        width: 150px;
+    }
+
+    .login-btn:hover, .profile-btn:hover{
+        border-color: #ca1261;
+        transform: scale(1.05);
+        transition: all 150ms ease;
+    }
 
     header h1{
         margin: 0.2rem 0;  /*there was too much space above and below the header*/

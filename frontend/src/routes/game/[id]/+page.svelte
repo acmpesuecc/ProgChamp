@@ -61,7 +61,7 @@
             src = {game.url}
             allowfullscreen 
             on:load={handleLoad}
-            on:error={handleError}>
+        >
         </iframe>
 
         
