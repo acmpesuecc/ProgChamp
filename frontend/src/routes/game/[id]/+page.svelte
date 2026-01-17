@@ -5,11 +5,20 @@
     
     let isLoading = true;
     let hasError = false;
+    let loadTimeout;
     let iframeEl;
     
     function handleLoad(){
+        clearTimeout(loadTimeout);
         isLoading = false;
     }
+
+    loadTimeout = setTimeout(() => {
+        if(isLoading){
+            hasError = true;
+            isLoading = false;
+        }
+    }, 20000);
 
     function handleError(){
         hasError = true;
