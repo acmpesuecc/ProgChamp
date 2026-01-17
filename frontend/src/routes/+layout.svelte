@@ -1,7 +1,8 @@
 <script>
     import '../app.css'
     import { user } from '$lib/stores/user.js';
-    import Button from '$lib/components/layout/ui/Button.svelte';
+    import { goto } from '$app/navigation';
+
 
     let isProfileOpen = false;
 
@@ -20,20 +21,20 @@
 
     {#if $user.isSignedIn && isProfileOpen}
         <div class="profile-dropdown">
-            <p> Guest <!-- {$user.name} --> </p>
+            <p> {$user.name} <!-- Guest --></p>
             <hr width="130px">
             
             {#if $user?.role === "dev"}
-                <button class = "my-games">
+                <button class = "my-games"> <!-- on:click={()=> goto('/mygames')} -->
                     My Games
                 </button>
-                <button class = "pub-games">
+                <button class = "pub-games" on:click={()=> goto('/upload')}>
                     Publish Games
                 </button>
             {/if}
 
             {#if $user?.role === "admin"}
-                <button class = "dashbd">
+                <button class = "dashbd" on:click={()=> goto('/admin')}>
                     Dashboard
                 </button>
             {/if}
