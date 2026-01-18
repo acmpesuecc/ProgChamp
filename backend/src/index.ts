@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-//import auth from "./routes/auth";
+import auth from "./routes/auth";
 import games from "./routes/games";
 
 const app = new Hono();
@@ -12,7 +12,7 @@ app.use("/*", cors());
 app.get("/", (c) => c.text("OK"));
 
 // Mount routes
-//app.route("/auth", auth);
+app.route("/auth", auth);
 app.route("/games", games);
 
 export default app;
