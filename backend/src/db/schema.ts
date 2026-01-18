@@ -1,5 +1,5 @@
 import { sqliteTable, text, integer, primaryKey } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 
 // ============================================================================
 // USERS
@@ -19,11 +19,25 @@ export const users = sqliteTable("users", {
   // Soft delete (30-day deactivation period before hard delete)
   isActive: integer("is_active", { mode: "boolean" }).default(true).notNull(),
   deactivatedAt: integer("deactivated_at", { mode: "timestamp" }),
-  deactivatedBy: text("deactivated_by").references(() => users.id),
+  deactivatedBy: text("deactivated_by"),
   deactivationReason: text("deactivation_reason"),
   
   createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+});
+
+// ============================================================================
+// GAME MEDIA (Defined early to avoid circular dependency)
+// ============================================================================
+
+export const gameMedia = sqliteTable("game_media", {
+  id: text("id").primaryKey(),
+  gameRequestId: text("game_request_id").notNull(),
+  gameId: text("game_id"),
+  mediaType: text("media_type", { enum: ["image", "video"] }).notNull(),
+  r2Key: text("r2_key").notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
 });
 
 // ============================================================================
@@ -35,7 +49,10 @@ export const games = sqliteTable("games", {
   title: text("title").notNull(),
   description: text("description"),
   gameUrl: text("game_url").notNull(),
-  createdBy: text("created_by").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  createdBy: text("created_by").notNull(),
+  
+  // Cover image/video - references game_media (0 or 1)
+  coverMediaId: text("cover_media_id"),
   
   // Interaction counters (denormalized for performance)
   countLikes: integer("count_likes").default(0).notNull(),
@@ -65,14 +82,17 @@ export const gameRequests = sqliteTable("game_requests", {
   }).notNull(),
   
   // NULL for new_game, NOT NULL for game_modification and game_appeal
-  gameId: text("game_id").references(() => games.id, { onDelete: "set null" }),
+  gameId: text("game_id"),
   
-  submittedBy: text("submitted_by").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  submittedBy: text("submitted_by").notNull(),
   
   // Game data (staged until approval)
   title: text("title").notNull(),
   description: text("description"),
   gameUrl: text("game_url").notNull(),
+  
+  // Cover image/video for the request - references game_media (0 or 1)
+  coverMediaId: text("cover_media_id"),
   
   // Arrays stored as JSON for admin convenience
   mediaIds: text("media_ids"), // JSON array: ["media_1", "media_2"]
@@ -84,7 +104,7 @@ export const gameRequests = sqliteTable("game_requests", {
   }).default("pending").notNull(),
   
   adminResponse: text("admin_response"),
-  reviewedBy: text("reviewed_by").references(() => users.id),
+  reviewedBy: text("reviewed_by"),
   reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
   
   createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
@@ -102,10 +122,10 @@ export const userRequests = sqliteTable("user_requests", {
     enum: ["user_unban_appeal", "game_report_appeal"] 
   }).notNull(),
   
-  submittedBy: text("submitted_by").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  submittedBy: text("submitted_by").notNull(),
   
   // For game_report_appeal - which game is the appeal about
-  relatedGameId: text("related_game_id").references(() => games.id, { onDelete: "set null" }),
+  relatedGameId: text("related_game_id"),
   
   // Appeal details
   appealText: text("appeal_text").notNull(),
@@ -116,7 +136,7 @@ export const userRequests = sqliteTable("user_requests", {
   }).default("pending").notNull(),
   
   adminResponse: text("admin_response"),
-  reviewedBy: text("reviewed_by").references(() => users.id),
+  reviewedBy: text("reviewed_by"),
   reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
   
   createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
@@ -131,7 +151,7 @@ export const tags = sqliteTable("tags", {
   id: text("id").primaryKey(),
   name: text("name").unique().notNull(),
   category: text("category"),
-  createdBy: text("created_by").references(() => users.id).notNull(),
+  createdBy: text("created_by").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
 });
 
@@ -140,40 +160,21 @@ export const tags = sqliteTable("tags", {
 // ============================================================================
 
 export const gameTags = sqliteTable("game_tags", {
-  gameId: text("game_id").references(() => games.id, { onDelete: "cascade" }).notNull(),
-  tagId: text("tag_id").references(() => tags.id, { onDelete: "cascade" }).notNull(),
+  gameId: text("game_id").notNull(),
+  tagId: text("tag_id").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
 }, (table) => ({
   pk: primaryKey({ columns: [table.gameId, table.tagId] }),
 }));
 
-// ============================================================================
-// GAME MEDIA (Images/Videos for game requests and live games)
-// ============================================================================
-
-export const gameMedia = sqliteTable("game_media", {
-  id: text("id").primaryKey(),
-  
-  // Always linked to game request initially
-  gameRequestId: text("game_request_id").references(() => gameRequests.id, { onDelete: "cascade" }).notNull(),
-  
-  // NULL until request approved, then set to game.id
-  gameId: text("game_id").references(() => games.id, { onDelete: "cascade" }),
-  
-  mediaType: text("media_type", { enum: ["image", "video"] }).notNull(),
-  r2Key: text("r2_key").notNull(),
-  sortOrder: integer("sort_order").default(0).notNull(),
-  
-  createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
-});
 
 // ============================================================================
 // GAME REACTIONS (Unified like/dislike table)
 // ============================================================================
 
 export const gameReactions = sqliteTable("game_reactions", {
-  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
-  gameId: text("game_id").references(() => games.id, { onDelete: "cascade" }).notNull(),
+  userId: text("user_id").notNull(),
+  gameId: text("game_id").notNull(),
   reactionType: text("reaction_type", { enum: ["like", "dislike"] }).notNull(),
   
   createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
@@ -187,8 +188,8 @@ export const gameReactions = sqliteTable("game_reactions", {
 // ============================================================================
 
 export const gameSuperlikes = sqliteTable("game_superlikes", {
-  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
-  gameId: text("game_id").references(() => games.id, { onDelete: "cascade" }).notNull(),
+  userId: text("user_id").notNull(),
+  gameId: text("game_id").notNull(),
   
   createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
 }, (table) => ({
@@ -201,8 +202,8 @@ export const gameSuperlikes = sqliteTable("game_superlikes", {
 
 export const gameViews = sqliteTable("game_views", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  gameId: text("game_id").references(() => games.id, { onDelete: "cascade" }).notNull(),
-  userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+  gameId: text("game_id").notNull(),
+  userId: text("user_id"),
   ipHash: text("ip_hash"),
   fingerprint: text("fingerprint"),
   userAgent: text("user_agent"),
@@ -216,11 +217,129 @@ export const gameViews = sqliteTable("game_views", {
 
 export const adminActions = sqliteTable("admin_actions", {
   id: text("id").primaryKey(),
-  adminId: text("admin_id").references(() => users.id).notNull(),
+  adminId: text("admin_id").notNull(),
   
   // At least one must be NOT NULL (enforced in backend)
-  gameRequestId: text("game_request_id").references(() => gameRequests.id),
-  userRequestId: text("user_request_id").references(() => userRequests.id),
+  gameRequestId: text("game_request_id"),
+  userRequestId: text("user_request_id"),
   
   createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
 });
+
+// ============================================================================
+// RELATIONS (Define foreign keys via relations to avoid circular dependencies)
+// ============================================================================
+
+export const usersRelations = relations(users, ({ many, one }) => ({
+  games: many(games),
+  gameRequests: many(gameRequests),
+  userRequests: many(userRequests),
+  tags: many(tags),
+  reactions: many(gameReactions),
+  superlikes: many(gameSuperlikes),
+  views: many(gameViews),
+  deactivatedByUser: one(users, {
+    fields: [users.deactivatedBy],
+    references: [users.id],
+  }),
+}));
+
+export const gamesRelations = relations(games, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [games.createdBy],
+    references: [users.id],
+  }),
+  coverMedia: one(gameMedia, {
+    fields: [games.coverMediaId],
+    references: [gameMedia.id],
+  }),
+  media: many(gameMedia),
+  tags: many(gameTags),
+  reactions: many(gameReactions),
+  superlikes: many(gameSuperlikes),
+  views: many(gameViews),
+  requests: many(gameRequests),
+}));
+
+export const gameRequestsRelations = relations(gameRequests, ({ one, many }) => ({
+  game: one(games, {
+    fields: [gameRequests.gameId],
+    references: [games.id],
+  }),
+  submitter: one(users, {
+    fields: [gameRequests.submittedBy],
+    references: [users.id],
+  }),
+  reviewer: one(users, {
+    fields: [gameRequests.reviewedBy],
+    references: [users.id],
+  }),
+  coverMedia: one(gameMedia, {
+    fields: [gameRequests.coverMediaId],
+    references: [gameMedia.id],
+  }),
+  media: many(gameMedia),
+}));
+
+export const gameMediaRelations = relations(gameMedia, ({ one }) => ({
+  gameRequest: one(gameRequests, {
+    fields: [gameMedia.gameRequestId],
+    references: [gameRequests.id],
+  }),
+  game: one(games, {
+    fields: [gameMedia.gameId],
+    references: [games.id],
+  }),
+}));
+
+export const tagsRelations = relations(tags, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [tags.createdBy],
+    references: [users.id],
+  }),
+  games: many(gameTags),
+}));
+
+export const gameTagsRelations = relations(gameTags, ({ one }) => ({
+  game: one(games, {
+    fields: [gameTags.gameId],
+    references: [games.id],
+  }),
+  tag: one(tags, {
+    fields: [gameTags.tagId],
+    references: [tags.id],
+  }),
+}));
+
+export const gameReactionsRelations = relations(gameReactions, ({ one }) => ({
+  user: one(users, {
+    fields: [gameReactions.userId],
+    references: [users.id],
+  }),
+  game: one(games, {
+    fields: [gameReactions.gameId],
+    references: [games.id],
+  }),
+}));
+
+export const gameSuperlikesRelations = relations(gameSuperlikes, ({ one }) => ({
+  user: one(users, {
+    fields: [gameSuperlikes.userId],
+    references: [users.id],
+  }),
+  game: one(games, {
+    fields: [gameSuperlikes.gameId],
+    references: [games.id],
+  }),
+}));
+
+export const gameViewsRelations = relations(gameViews, ({ one }) => ({
+  user: one(users, {
+    fields: [gameViews.userId],
+    references: [users.id],
+  }),
+  game: one(games, {
+    fields: [gameViews.gameId],
+    references: [games.id],
+  }),
+}));
