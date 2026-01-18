@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { db } from "../db/index";
-import { games, gameReactions, gameSuperlikes, gameViews, gameTags, users } from "../db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { games, gameReactions, gameSuperlikes, gameViews, gameTags, users, tags } from "../db/schema";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { z } from "zod";
 import crypto from "crypto";
 
@@ -94,19 +94,23 @@ gamesRouter.get("/:id", async (c) => {
       userSuperliked = !!superlike;
     }
 
-    // Get tags
-    const tags = await db.query.gameTags.findMany({
+    // Get tags - Fixed relation query
+    const gameTagsData = await db.query.gameTags.findMany({
       where: eq(gameTags.gameId, gameId),
-      with: {
-        tag: true,
-      },
     });
+
+    const tagIds = gameTagsData.map(gt => gt.tagId);
+    const tagsData = tagIds.length > 0 
+      ? await db.query.tags.findMany({
+          where: inArray(tags.id, tagIds)
+        })
+      : [];
 
     return c.json({
       game,
       userReaction,
       userSuperliked,
-      tags: tags.map((t) => t.tag),
+      tags: tagsData,
     });
   } catch (error) {
     console.error("Get game error:", error);
@@ -144,7 +148,10 @@ gamesRouter.post("/:id/view", async (c) => {
     // Increment view count
     await db
       .update(games)
-      .set({ viewCount: sql`${games.viewCount} + 1` })
+      .set({ 
+        viewCount: sql`${games.viewCount} + 1`,
+        updatedAt: new Date(),
+      })
       .where(eq(games.id, gameId));
 
     return c.json({ success: true });
@@ -205,15 +212,26 @@ gamesRouter.post("/:id/react", async (c) => {
             )
           );
 
-        // Update counter
-        const field = type === "like" ? games.countLikes : games.countDislikes;
-        await db
-          .update(games)
-          .set({ 
-            [type === "like" ? "countLikes" : "countDislikes"]: sql`${field} - 1`,
-            score: sql`${games.countLikes} - ${games.countDislikes}`,
-          })
-          .where(eq(games.id, gameId));
+        // Update counter - Fixed dynamic field access
+        if (type === "like") {
+          await db
+            .update(games)
+            .set({ 
+              countLikes: sql`${games.countLikes} - 1`,
+              score: sql`${games.countLikes} - ${games.countDislikes}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(games.id, gameId));
+        } else {
+          await db
+            .update(games)
+            .set({ 
+              countDislikes: sql`${games.countDislikes} - 1`,
+              score: sql`${games.countLikes} - ${games.countDislikes}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(games.id, gameId));
+        }
 
         return c.json({ success: true, action: "removed" });
       } else {
@@ -228,18 +246,28 @@ gamesRouter.post("/:id/react", async (c) => {
             )
           );
 
-        // Update counters (remove old, add new)
-        const oldField = existing.reactionType === "like" ? games.countLikes : games.countDislikes;
-        const newField = type === "like" ? games.countLikes : games.countDislikes;
-
-        await db
-          .update(games)
-          .set({
-            [existing.reactionType === "like" ? "countLikes" : "countDislikes"]: sql`${oldField} - 1`,
-            [type === "like" ? "countLikes" : "countDislikes"]: sql`${newField} + 1`,
-            score: sql`${games.countLikes} - ${games.countDislikes}`,
-          })
-          .where(eq(games.id, gameId));
+        // Update counters - Fixed with separate if/else
+        if (existing.reactionType === "like" && type === "dislike") {
+          await db
+            .update(games)
+            .set({
+              countLikes: sql`${games.countLikes} - 1`,
+              countDislikes: sql`${games.countDislikes} + 1`,
+              score: sql`${games.countLikes} - ${games.countDislikes}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(games.id, gameId));
+        } else {
+          await db
+            .update(games)
+            .set({
+              countLikes: sql`${games.countLikes} + 1`,
+              countDislikes: sql`${games.countDislikes} - 1`,
+              score: sql`${games.countLikes} - ${games.countDislikes}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(games.id, gameId));
+        }
 
         return c.json({ success: true, action: "changed" });
       }
@@ -251,15 +279,26 @@ gamesRouter.post("/:id/react", async (c) => {
         reactionType: type,
       });
 
-      // Update counter
-      const field = type === "like" ? games.countLikes : games.countDislikes;
-      await db
-        .update(games)
-        .set({
-          [type === "like" ? "countLikes" : "countDislikes"]: sql`${field} + 1`,
-          score: sql`${games.countLikes} - ${games.countDislikes}`,
-        })
-        .where(eq(games.id, gameId));
+      // Update counter - Fixed dynamic field access
+      if (type === "like") {
+        await db
+          .update(games)
+          .set({
+            countLikes: sql`${games.countLikes} + 1`,
+            score: sql`${games.countLikes} - ${games.countDislikes}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(games.id, gameId));
+      } else {
+        await db
+          .update(games)
+          .set({
+            countDislikes: sql`${games.countDislikes} + 1`,
+            score: sql`${games.countLikes} - ${games.countDislikes}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(games.id, gameId));
+      }
 
       return c.json({ success: true, action: "added" });
     }
@@ -283,7 +322,7 @@ gamesRouter.post("/:id/superlike", async (c) => {
       where: eq(users.id, userId),
     });
 
-    if (!user) {
+    if (!user || !user.isActive) {
       return c.json({ error: "User not found" }, 404);
     }
 
@@ -292,7 +331,7 @@ gamesRouter.post("/:id/superlike", async (c) => {
     }
 
     const game = await db.query.games.findFirst({
-      where: eq(games.id, gameId),
+      where: and(eq(games.id, gameId), eq(games.isActive, true)),
     });
 
     if (!game) {
@@ -320,7 +359,10 @@ gamesRouter.post("/:id/superlike", async (c) => {
     // Update counters
     await db
       .update(games)
-      .set({ countSuperlikes: sql`${games.countSuperlikes} + 1` })
+      .set({ 
+        countSuperlikes: sql`${games.countSuperlikes} + 1`,
+        updatedAt: new Date(),
+      })
       .where(eq(games.id, gameId));
 
     await db
@@ -331,7 +373,10 @@ gamesRouter.post("/:id/superlike", async (c) => {
       })
       .where(eq(users.id, userId));
 
-    return c.json({ success: true });
+    return c.json({ 
+      success: true,
+      superlikesRemaining: user.superlikesRemaining - 1,
+    });
   } catch (error) {
     console.error("Superlike error:", error);
     return c.json({ error: "Failed to superlike" }, 500);
