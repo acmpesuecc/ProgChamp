@@ -110,10 +110,10 @@
         will-change: transform, border-color;
     }
 
-    .login-btn:hover, .profile-btn:hover {
+    /* .login-btn:hover, .profile-btn:hover {
         border-color: #ca1261;
         transform: translateY(-2px);
-    }
+    } */
 
     .profile-dropdown {
         margin-top: 8px;

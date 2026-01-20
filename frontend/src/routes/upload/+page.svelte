@@ -1,6 +1,6 @@
 <script lang="ts">
   import { submissions } from '../../lib/stores/submissions.ts';
-  import { user } from '$lib/stores/user.js';
+  import { page } from '$app/stores'
 
   let title = "";
   let description = "";
@@ -8,6 +8,9 @@
 
   let thumbnail: File | null = null;
   let preview: string | null = null;
+
+  $: session = $page.data.session;
+  $: user = session?.user;
 
   function handleFile(e: Event) {
     const input = e.target as HTMLInputElement;
@@ -29,7 +32,7 @@
         url,
         thumbnail,
         status: "pending",
-        dev: $user.name
+        dev: user.name
       }
     ]);
 

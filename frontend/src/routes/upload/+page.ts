@@ -2,6 +2,8 @@ import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import { user } from '../../lib/stores/user.js';
 
+//user is temporary, will need to change
+
 export function load() {
   const currentUser = get(user);
 
