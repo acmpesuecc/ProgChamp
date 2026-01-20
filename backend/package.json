@@ -4,7 +4,6 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@libsql/client": "^0.17.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/bun": "latest",
     "drizzle-kit": "^0.31.8"
@@ -24,6 +23,7 @@
     "@libsql/client": "^0.17.0",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.11.4",
+    "nanoid": "^5.1.6",
     "zod": "^4.3.5"
   }
 }
