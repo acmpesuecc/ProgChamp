@@ -13,7 +13,6 @@
         "zod": "^4.3.5",
       },
       "devDependencies": {
-        "@types/better-sqlite3": "^7.6.13",
         "@types/bun": "latest",
         "drizzle-kit": "^0.31.8",
       },
