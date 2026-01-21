@@ -257,7 +257,6 @@ auth.get("/session", async (c) => {
     const session = await getSession(sessionId);
     
     if (!session) {
-      // Session expired or invalid
       deleteCookie(c, "session_id");
       return c.json({
         authenticated: false,
@@ -276,7 +275,7 @@ auth.get("/session", async (c) => {
         needsProfileSetup: false,
       });
     }
-    
+    console.log(sessionId)
     return c.json({
       authenticated: true,
       needsProfileSetup: !user.profileCompletedAt,
@@ -307,7 +306,7 @@ auth.get("/session", async (c) => {
  * 
  * Requires: valid session cookie
  */
-auth.post("/logout", requireSession, async (c) => {
+auth.post("/logout", async (c) => {
   try {
     const sessionId = getCookie(c, "session_id");
     
