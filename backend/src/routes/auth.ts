@@ -309,10 +309,12 @@ auth.get("/session", async (c) => {
  */
 auth.post("/logout", requireSession, async (c) => {
   try {
-    const sessionId = c.get("sessionId");
+    const sessionId = getCookie(c, "session_id");
     
-    // Delete session from database
-    await deleteSession(sessionId);
+    if (sessionId) {
+      // Delete session from database
+      await deleteSession(sessionId);
+    }
     
     // Clear session cookie
     deleteCookie(c, "session_id");
