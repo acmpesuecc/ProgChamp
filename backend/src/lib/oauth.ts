@@ -78,7 +78,7 @@ export async function exchangeCodeForTokens(
   clientSecret: string,
   redirectUri: string
 ): Promise<{ access_token: string; id_token: string }> {
-  const response = await fetch("https://oauth2.googleapis.com", {
+  const response = await fetch("https://accounts.google.com/o/oauth2/v2/auth", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -110,7 +110,7 @@ export async function getGoogleUserInfo(accessToken: string): Promise<{
   email: string;
   email_verified: boolean;
 }> {
-  const response = await fetch("https://www.googleapis.com", {
+  const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo.", {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
