@@ -24,8 +24,7 @@ export async function generateCodeChallenge(verifier: string): Promise<string> {
  * Generate random state parameter for CSRF protection
  */
 export function generateState(): string {
-  // Explicitly passing the number to satisfy strict type checks
-  return nanoid(32 as number); 
+  return nanoid(32);
 }
 
 /**
@@ -34,8 +33,9 @@ export function generateState(): string {
 function base64UrlEncode(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]!);
+  const len = bytes.length;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i] as number);
   }
   
   return btoa(binary)
@@ -71,6 +71,17 @@ export async function buildGoogleAuthUrl(
 /**
  * Exchange authorization code for tokens
  */
+
+// Define the expected response shape
+interface GoogleTokenResponse {
+  access_token: string;
+  id_token: string;
+  expires_in: number;
+  token_type: string;
+  refresh_token?: string;
+  scope: string;
+}
+
 export async function exchangeCodeForTokens(
   code: string,
   codeVerifier: string,
@@ -78,7 +89,7 @@ export async function exchangeCodeForTokens(
   clientSecret: string,
   redirectUri: string
 ): Promise<{ access_token: string; id_token: string }> {
-  const response = await fetch("https://accounts.google.com/o/oauth2/v2/auth", {
+  const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -92,14 +103,27 @@ export async function exchangeCodeForTokens(
       code_verifier: codeVerifier,
     }),
   });
-  
+
+  const responseText = await response.text();
+
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Token exchange failed: ${error}`);
+    console.error("Token exchange failed. Status:", response.status);
+    console.error("Response:", responseText);
+    throw new Error(`Token exchange failed (${response.status}): ${responseText}`);
   }
-  
-  // FIX: Cast the unknown JSON to the expected type
-  return (await response.json()) as { access_token: string; id_token: string };
+
+  try {
+    const data = JSON.parse(responseText) as GoogleTokenResponse;
+    const result: { access_token: string; id_token: string } = {
+      access_token: data.access_token,
+      id_token: data.id_token,
+    };
+    return result;
+  } catch (e) {
+    console.error("Failed to parse token response as JSON");
+    console.error("Response text:", responseText);
+    throw new Error(`Invalid JSON response from Google: ${responseText.substring(0, 200)}`);
+  }
 }
 
 /**
@@ -110,21 +134,31 @@ export async function getGoogleUserInfo(accessToken: string): Promise<{
   email: string;
   email_verified: boolean;
 }> {
-  const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo.", {
+  const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   });
   
+  const responseText = await response.text();
+  
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to fetch user info: ${error}`);
+    console.error("Get user info failed. Status:", response.status);
+    console.error("Response:", responseText);
+    throw new Error(`Failed to fetch user info (${response.status}): ${responseText}`);
   }
   
-  // FIX: Cast the unknown JSON to the expected type
-  return (await response.json()) as {
-    sub: string;
-    email: string;
-    email_verified: boolean;
-  };
+  try {
+    const parsed = JSON.parse(responseText);
+    const result: { sub: string; email: string; email_verified: boolean } = {
+      sub: parsed.sub as string,
+      email: parsed.email as string,
+      email_verified: parsed.email_verified as boolean,
+    };
+    return result;
+  } catch (e) {
+    console.error("Failed to parse user info response as JSON");
+    console.error("Response text:", responseText);
+    throw new Error(`Invalid JSON response from Google: ${responseText.substring(0, 200)}`);
+  }
 }
