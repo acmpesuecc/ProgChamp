@@ -2,19 +2,19 @@
 
 _This project is part of ACMPESUECC - AIEP'26._
 
-### Mentees:
+**Mentees:**
 
-Archita Agrawal
-Sannidhi Nayak
-Poornaprajna Kashyap
-Pratham Mudakavi
-Syed Ayaan Hasan
+- Archita Agrawal
+- Sannidhi Nayak
+- Poornaprajna Kashyap
+- Pratham Mudakavi
+- Syed Ayaan Hasan
 
-### Mentors:
+**Mentors:**
 
-Rehan Jose Mathew
-Zia Kadijah
-Ashmita Chaki
+- Rehaan Jose Mathew
+- Zia Kadijah
+- Ashmita Chaki
 
 ## Tech Stack
 
