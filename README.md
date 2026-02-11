@@ -1,5 +1,21 @@
 # ProgChamp
 
+_This project is part of ACMPESUECC - AIEP'26._
+
+### Mentees:
+
+Archita Agrawal
+Sannidhi Nayak
+Poornaprajna Kashyap
+Pratham Mudakavi
+Syed Ayaan Hasan
+
+### Mentors:
+
+Rehan Jose Mathew
+Zia Kadijah
+Ashmita Chaki
+
 ## Tech Stack
 
 | Layer | Technologies |
