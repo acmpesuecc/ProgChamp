@@ -3,10 +3,8 @@ import { eq, desc } from "drizzle-orm";
 import { db } from "../db";
 import { games } from "../db/schema";
 
-/**
- * Minimal requireSession middleware stub to satisfy imports and types.
- * Replace with the real middleware implementation from ../lib/middleware when available.
- */
+
+
 const requireSession = async (c: any, next: any) => {
   return await next();
 };
@@ -18,6 +16,8 @@ const gamesRoute = new Hono();
  *
  * Authenticated users only.
  * Returns all ACTIVE games.
+ * Pagination needs to be added
+ *Filtering system needs to be added
  */
 gamesRoute.get("/", requireSession, async (c) => {
   try {
@@ -58,3 +58,4 @@ gamesRoute.get("/", requireSession, async (c) => {
 });
 
 export default gamesRoute;
+
