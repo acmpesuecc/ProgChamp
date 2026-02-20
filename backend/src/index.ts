@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import auth from "./routes/auth";
 import profile from "./routes/profile";
-import games from "./routes/games";
+import reactions from "./routes/reactions";
 
 const app = new Hono();
 
@@ -20,7 +20,7 @@ app.use(
 app.get("/", (c) => c.text("OK"));
 app.route("/auth", auth);
 app.route("/profile", profile);
-app.route("/games", games)
+app.route("/games", reactions)
 
 export default app;
 

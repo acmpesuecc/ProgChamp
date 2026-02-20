@@ -3,10 +3,10 @@ import { db } from "../db";
 import { gameReactions } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 
-const games = new Hono();
+const reactions = new Hono();
 
 // to fetch status of like/dislike
-games.get("/:gameId/reaction", async (c) => {
+reactions.get("/:gameId/reaction", async (c) => {
     const userId = c.req.header("X-User-Id");
     const gameId = c.req.param("gameId");
 
@@ -33,7 +33,7 @@ games.get("/:gameId/reaction", async (c) => {
 });
 
 // to like or dislike a game
-games.post("/:id/react", async (c) => {
+reactions.post("/:id/react", async (c) => {
     const userId = c.req.header("X-User-Id");
     const gameId = c.req.param("id");
 
@@ -92,4 +92,4 @@ games.post("/:id/react", async (c) => {
     }
 });
 
-export default games;
+export default reactions;
