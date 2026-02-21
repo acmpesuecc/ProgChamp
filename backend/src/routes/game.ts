@@ -15,15 +15,11 @@ import { requireSession } from "../lib/middleware";
 
 const gamesRoute = new Hono();
 
-// ============================================================================
-// ZOD VALIDATION
-// ============================================================================
-
+// ZOD validation
 const gamesQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(50).default(10),
   search: z.string().min(1).optional(),
-  minLikes: z.coerce.number().min(0).optional(),
   maxLikes: z.coerce.number().min(0).optional(),
   createdAfter: z.string().optional(),
   createdBefore: z.string().optional(),
@@ -66,7 +62,6 @@ gamesRoute.get("/", requireSession, async (c) => {
       page,
       limit,
       search,
-      minLikes,
       maxLikes,
       createdAfter,
       createdBefore,
@@ -81,8 +76,7 @@ gamesRoute.get("/", requireSession, async (c) => {
       conditions.push(like(games.title, `%${search}%`));
     }
 
-    if (minLikes !== undefined) {
-      conditions.push(gte(games.countLikes, minLikes));
+    
     }
 
     if (maxLikes !== undefined) {
@@ -158,3 +152,4 @@ gamesRoute.get("/", requireSession, async (c) => {
 });
 
 export default gamesRoute;
+
