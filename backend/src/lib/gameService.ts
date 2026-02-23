@@ -12,7 +12,7 @@ export async function getGame(id: string) {
             throw new NotFoundError(`Game not found `);
         }
     if (!game.isActive) {
-            throw new InvalidStateError(`Invalid game status `);
+            throw new InvalidStateError(`Game is deactivated `);
         }
     
         return game

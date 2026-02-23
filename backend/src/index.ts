@@ -22,8 +22,6 @@ app.use(
 app.get("/", (c) => c.text("OK"));
 app.route("/auth", auth);
 app.route("/profile", profile);
-app.route("/auth", auth);
-app.route("/profile", profile);
 app.route("/game-requests", gameRequests); // Accessible at /game-requests
 app.route("/user-requests", userRequests); // Accessible at /user-requests
 app.route("/admin/game-requests", adminGameRequests); // Accessible at /admin/game-requests

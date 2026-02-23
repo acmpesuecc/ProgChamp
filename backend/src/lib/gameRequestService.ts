@@ -47,7 +47,6 @@ export async function approveGameRequest(id: string, adminId: string) {
 
     await tx.update(gameRequests)
       .set({
-        id: gameId,
         status: "approved",
         reviewedBy: adminId,
         reviewedAt: new Date(),
@@ -63,31 +62,6 @@ export async function approveGameRequest(id: string, adminId: string) {
   });
 }
 
-export async function validateGameSubmission(userId: string, body: any) {
-  const title = body.title?.trim();
-  const gameUrl = body.gameUrl?.trim();
-  const description = body.description?.trim() ?? null;
-
-  if (!title) throw new Error("Title is required");
-  if (!gameUrl) throw new Error("Game URL is required");
-  if (title.length > 100) throw new Error("Title too long");
-
-  const existing = await db.query.gameRequests.findFirst({
-  where: and(
-    eq(gameRequests.submittedBy, userId),
-    eq(gameRequests.gameUrl, gameUrl),
-    eq(gameRequests.status, "pending")
-    )
-  });
-  const existingGame = await db.query.games.findFirst({
-  where: eq(games.gameUrl, gameUrl)
-  });
-
-  if(existingGame) throw new Error ("Game already exists");
-  if(existing) throw new Error ("Game request already submitted")
-
-  return { title, gameUrl, description };
-}
 
 export async function canUserSubmitNewGame(userId: string): Promise<boolean> {
   const [result] = await db

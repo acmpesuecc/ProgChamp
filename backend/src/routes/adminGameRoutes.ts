@@ -2,11 +2,12 @@ import { Hono } from "hono";
 import { db } from "../db/index";
 import { gameRequests, userRequests, games, adminActions } from "../db/schema";
 import { requireSession, requireAdmin } from "../lib/middleware";
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { approveGameRequest, getPendingGameRequest } from "../lib/gameRequestService";
 import { getGame } from "../lib/gameService";
 import { NotFoundError, InvalidStateError } from "../lib/errors";
+import { z } from "zod"
 
 
 const adminGameRequestRoutes = new Hono();
@@ -25,14 +26,28 @@ adminGameRequestRoutes.get(
         const offset = (page - 1) * pageSize;
 
 
-        const requests = await db.query.gameRequests.findMany({
+        const [requests, totalCount] = await Promise.all([
+          db.query.gameRequests.findMany({
             where: eq(gameRequests.status, "pending"),
             limit: pageSize,
             offset: offset,
             orderBy: (gameRequests, { desc }) => [desc(gameRequests.createdAt)],
-        });
+          }),
+          db.select({ count: count() }).from(gameRequests).where(eq(gameRequests.status, "pending")),
+        ]);
 
-        return c.json({requests})
+        const total = totalCount[0]?.count ?? 0;
+        const totalPages = Math.ceil(total / pageSize);
+
+
+        return c.json({
+          requests, 
+          meta : {
+            page, pageSize, total, totalPages, 
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1
+          }
+        })
     }
 );
 
@@ -107,9 +122,14 @@ adminGameRequestRoutes.post(
   }
 );
 
+//zod schema validation
+const deactivateSchema = z.object({
+  reason: z.string().min(1, "Reason is required")
+});
+
 // Admin deactivates games
 adminGameRequestRoutes.post (
-  ":id/deactivate",
+  "/:id/deactivate",
   requireSession,
   requireAdmin,
 
@@ -117,7 +137,11 @@ adminGameRequestRoutes.post (
     const admin = c.get("user");
     const gameId = c.req.param("id");
     const body = await c.req.json();
-    const reason = body.reason;
+    const result = deactivateSchema.safeParse(body);
+    if (!result.success) {
+      return c.json({ error: "Validation failed", details: result.error.format() }, 400);
+    }
+    const { reason } = result.data;
 
     try {
       await getGame(gameId)
