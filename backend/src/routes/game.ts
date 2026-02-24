@@ -76,9 +76,6 @@ gamesRoute.get("/", requireSession, async (c) => {
       conditions.push(like(games.title, `%${search}%`));
     }
 
-    
-    }
-
     if (maxLikes !== undefined) {
       conditions.push(lte(games.countLikes, maxLikes));
     }
