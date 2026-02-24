@@ -7,7 +7,6 @@ import {
   gte,
   lte,
   and,
-  desc,
   count,
 } from "drizzle-orm";
 import { z } from "zod";
