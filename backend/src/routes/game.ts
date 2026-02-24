@@ -21,8 +21,8 @@ const gamesQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(50).default(10),
   search: z.string().min(1).optional(),
   maxLikes: z.coerce.number().min(0).optional(),
-  createdAfter: z.string().optional(),
-  createdBefore: z.string().optional(),
+  createdAfter: z.string().date().optional(),
+  createdBefore: z.string().date().optional(),
 });
 
 /**
