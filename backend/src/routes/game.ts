@@ -13,7 +13,7 @@ import {
 import { z } from "zod";
 import { requireSession } from "../lib/middleware";
 
-const gamesRoute = new Hono();
+export const gamesRoute = new Hono();
 
 // ZOD validation
 const gamesQuerySchema = z.object({
