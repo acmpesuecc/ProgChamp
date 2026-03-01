@@ -4,43 +4,37 @@
   import { page } from '$app/stores';
   import { submissions } from '../../lib/stores/submissions';
 
-  // ─────────────────────────────────────────────
   // AUTH — swap with your real auth store
-  // ─────────────────────────────────────────────
-  let isLoggedIn = true;
-  let isAdmin    = false;
+  let isLoggedIn = $state(true);
+  let isAdmin    = $state(false);
 
-  $: session = $page.data.session;
-  $: user    = session?.user;
+  let session = $derived($page.data.session);
+  let user    = $derived(session?.user);
 
-  // ─────────────────────────────────────────────
   // STATE
-  // ─────────────────────────────────────────────
-  let showLogin     = false;
-  let loginEmail    = '';
-  let loginPassword = '';
-  let loginError    = '';
-  let isLoggingIn   = false;
+  let showLogin     = $state(false);
+  let loginEmail    = $state('');
+  let loginPassword = $state('');
+  let loginError    = $state('');
+  let isLoggingIn   = $state(false);
 
-  let title       = '';
-  let description = '';
-  let url         = '';
-  let genre       = '';
-  let thumbnail: File | null = null;
-  let preview: string | null = null;
-  let isDragging  = false;
-  let isSubmitting = false;
-  let submitted   = false;
+  let title        = $state('');
+  let description  = $state('');
+  let url          = $state('');
+  let genre        = $state('');
+  let thumbnail    = $state<File | null>(null);
+  let preview      = $state<string | null>(null);
+  let isDragging   = $state(false);
+  let isSubmitting = $state(false);
+  let submitted    = $state(false);
 
-  let cursorEl: HTMLElement;
-  let dotEl: HTMLElement;
-  let dropzone: HTMLElement;
+  let cursorEl = $state<HTMLElement | undefined>(undefined);
+  let dotEl    = $state<HTMLElement | undefined>(undefined);
+  let dropzone = $state<HTMLElement | undefined>(undefined);
 
   const genres = ['Action RPG', 'Shooter', 'Racing', 'Strategy', 'Arcade', 'Space Sim', 'Survival', 'Horror', 'Fighting', 'Puzzle'];
 
-  // ─────────────────────────────────────────────
   // FILE HANDLING
-  // ─────────────────────────────────────────────
   function handleFile(file: File) {
     if (!file.type.startsWith('image/')) return;
     thumbnail = file;
@@ -62,10 +56,9 @@
   function handleDragOver(e: DragEvent) { e.preventDefault(); isDragging = true; }
   function handleDragLeave() { isDragging = false; }
 
-  // ─────────────────────────────────────────────
   // SUBMIT
-  // ─────────────────────────────────────────────
-  async function handleSubmit() {
+  async function handleSubmit(e: Event) {
+    e.preventDefault();
     if (!title || !description || !url || !thumbnail) return;
     isSubmitting = true;
 
@@ -96,9 +89,7 @@
     }, 3000);
   }
 
-  // ─────────────────────────────────────────────
   // LOGIN (same as home page)
-  // ─────────────────────────────────────────────
   function goTo(path: string, requiresAuth = false) {
     if (requiresAuth && !isLoggedIn) showLogin = true;
     else goto(path);
@@ -121,12 +112,10 @@
     }
   }
 
-  function logout() { isLoggedIn = isAdmin = false; }
+  function logout() { isLoggedIn = false; isAdmin = false; }
   function closeOnBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) showLogin = false; }
 
-  // ─────────────────────────────────────────────
-  // CURSOR (identical to home page)
-  // ─────────────────────────────────────────────
+  // CURSOR
   onMount(() => {
     let mx = 0, my = 0, cx = 0, cy = 0;
     const onMove = (e: MouseEvent) => {
@@ -157,17 +146,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Oxanium:wght@300;400;600;800&display=swap" rel="stylesheet" />
 </svelte:head>
 
-<!-- ── CURSOR ── -->
+<!-- CURSOR -->
 <div class="cursor"     bind:this={cursorEl}></div>
 <div class="cursor-dot" bind:this={dotEl}></div>
 
-<!-- ── BACKGROUND ── -->
+<!-- BACKGROUND -->
 <div class="grid-bg"></div>
 <div class="noise"></div>
 
-<!-- ════════════════════════════════════════
-     NAV (identical to home page)
-════════════════════════════════════════ -->
+<!-- NAV -->
 <nav>
   <a href="/" class="logo-wrap">
     <span class="logo">PROG<em>CHAMP</em></span>
@@ -175,9 +162,9 @@
   </a>
 
   <ul class="nav-links">
-    <li><a href="/games" class="nav-link">ALL GAMES</a></li>
+    <li><a href="/all-games" class="nav-link">ALL GAMES</a></li>
     <li><a href="/my-games" class="nav-link"
-        on:click|preventDefault={() => goTo('/my-games', true)}>MY GAMES</a></li>
+        onclick={(e) => { e.preventDefault(); goTo('/my-games', true); }}>MY GAMES</a></li>
     <li><a href="/upload" class="nav-link nav-link--active">UPLOAD</a></li>
     {#if isAdmin}
       <li><a href="/admin" class="nav-link nav-link--admin">ADMIN</a></li>
@@ -185,15 +172,13 @@
   </ul>
 
   {#if isLoggedIn}
-    <button class="nav-cta nav-cta--out" on:click={logout}>LOG OUT</button>
+    <button class="nav-cta nav-cta--out" onclick={logout}>LOG OUT</button>
   {:else}
-    <button class="nav-cta" on:click={() => showLogin = true}>LOGIN</button>
+    <button class="nav-cta" onclick={() => showLogin = true}>LOGIN</button>
   {/if}
 </nav>
 
-<!-- ════════════════════════════════════════
-     PAGE HEADER
-════════════════════════════════════════ -->
+<!-- PAGE HEADER -->
 <header class="page-header">
   <div class="header-orb orb1"></div>
   <div class="header-orb orb2"></div>
@@ -204,21 +189,19 @@
   </div>
 </header>
 
-<!-- ════════════════════════════════════════
-     UPLOAD FORM
-════════════════════════════════════════ -->
+<!-- UPLOAD FORM -->
 <main class="upload-main">
   <div class="upload-grid">
 
-    <!-- ── LEFT: FORM ── -->
+    <!-- LEFT: FORM -->
     <div class="form-panel">
       <div class="panel-corner tl"></div>
       <div class="panel-corner br"></div>
 
       <div class="panel-eyebrow">// GAME DETAILS</div>
 
-      <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-      <form on:submit|preventDefault={handleSubmit} class="upload-form">
+      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+      <form onsubmit={handleSubmit} class="upload-form">
 
         <!-- TITLE -->
         <div class="form-group">
@@ -287,27 +270,27 @@
         </button>
 
         {#if submitted}
-          <p class="submit-note">Your game has been queued for review. You'll hear back within 48 hours.</p>
+          <p class="submit-note">Your game has been queued for review.</p>
         {/if}
 
       </form>
     </div>
 
-    <!-- ── RIGHT: THUMBNAIL ── -->
+    <!-- RIGHT: THUMBNAIL -->
     <div class="thumb-panel">
       <div class="panel-corner tl"></div>
       <div class="panel-corner br"></div>
       <div class="panel-eyebrow">// THUMBNAIL</div>
 
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         class="dropzone"
         class:dragover={isDragging}
         class:has-preview={!!preview}
         bind:this={dropzone}
-        on:drop={handleDrop}
-        on:dragover={handleDragOver}
-        on:dragleave={handleDragLeave}
+        ondrop={handleDrop}
+        ondragover={handleDragOver}
+        ondragleave={handleDragLeave}
       >
         {#if preview}
           <img src={preview} alt="Thumbnail preview" class="thumb-preview" />
@@ -328,7 +311,7 @@
           type="file"
           accept="image/*"
           class="file-input-hidden"
-          on:change={handleInputChange}
+          onchange={handleInputChange}
         />
       </div>
 
@@ -338,8 +321,7 @@
         <ul class="tips-list">
           <li>Thumbnail should be 16:9, at least 800×450px</li>
           <li>URL must point to a playable, public build</li>
-          <li>All games are reviewed within 48 hours</li>
-          <li>Adult content or hate speech = instant reject</li>
+          <li>Upload content must not contain sensitive or offensive information of any kind</li>
         </ul>
       </div>
     </div>
@@ -347,31 +329,29 @@
   </div>
 </main>
 
-<!-- ════════════════════════════════════════
-     FOOTER (matching home page)
-════════════════════════════════════════ -->
+<!-- FOOTER -->
 <footer>
   <div class="footer-brand">
     <div class="footer-logo">PROG<span>CHAMP</span></div>
     <div class="footer-logo-sub">an @ACMpesuecc project</div>
-    <p class="footer-desc">The premier cyberpunk game hosting platform. We live in the grid so you can play without limits. Upload, compete, ascend.</p>
+    <p class="footer-desc">We live in the grid so you can play without limits. Upload, compete, ascend.</p>
   </div>
 
   <div>
     <div class="footer-col-title">Vault</div>
     <ul class="footer-links">
-      <li><a href="/games?sort=new">New Releases</a></li>
-      <li><a href="/games?sort=top">Top Rated</a></li>
-      <li><a href="/games?filter=free">Free to Play</a></li>
-      <li><a href="/games?filter=upcoming">Coming Soon</a></li>
+      <li><a href="/all-games?sort=new">New Releases</a></li>
+      <li><a href="/all-games?sort=top">Top Rated</a></li>
+      <li><a href="/all-games?filter=free">Free to Play</a></li>
+      <li><a href="/all-games?filter=upcoming">Coming Soon</a></li>
     </ul>
   </div>
 
   <div>
     <div class="footer-col-title">Your Space</div>
     <ul class="footer-links">
-      <li><a href="/games">Browse All Games</a></li>
-      <li><a href="/my-games" on:click|preventDefault={() => goTo('/my-games', true)}>My Games</a></li>
+      <li><a href="/all-games">Browse All Games</a></li>
+      <li><a href="/my-games" onclick={(e) => { e.preventDefault(); goTo('/my-games', true); }}>My Games</a></li>
       <li><a href="/upload">Upload a Game</a></li>
       {#if isAdmin}
         <li><a href="/admin" class="admin-link">Admin Panel</a></li>
@@ -383,9 +363,6 @@
     <div class="footer-col-title">ProgChamp</div>
     <ul class="footer-links">
       <li><a href="/about">About ACMpesuecc</a></li>
-      <li><a href="/dev-portal">Dev Portal</a></li>
-      <li><a href="/blog">Blog</a></li>
-      <li><a href="/support">Support</a></li>
     </ul>
   </div>
 
@@ -395,24 +372,22 @@
   </div>
 </footer>
 
-<!-- ════════════════════════════════════════
-     LOGIN MODAL (identical to home page)
-════════════════════════════════════════ -->
+<!-- LOGIN MODAL -->
 {#if showLogin}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div class="modal-backdrop" on:click={closeOnBackdrop}>
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="modal-backdrop" onclick={closeOnBackdrop}>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
       <div class="modal-corner tl"></div>
       <div class="modal-corner br"></div>
 
-      <button class="modal-close" on:click={() => showLogin = false} aria-label="Close">✕</button>
+      <button class="modal-close" onclick={() => showLogin = false} aria-label="Close">✕</button>
 
       <div class="modal-eyebrow">// ACCESS TERMINAL</div>
       <h2 class="modal-title" id="modal-heading">LOG<span>IN</span></h2>
       <p class="modal-sub">Enter your credentials to access the vault.</p>
 
-      <form class="login-form" on:submit={handleLogin}>
+      <form class="login-form" onsubmit={handleLogin}>
         <div class="form-group">
           <label class="form-label" for="login-email">EMAIL ADDRESS</label>
           <input id="login-email" type="email" class="form-input"
@@ -447,12 +422,8 @@
 {/if}
 
 <style>
-  /* ── CSS VARIABLES ── */
+  /* CSS VARIABLES */
   :global(:root) {
-    --hot-orange:  #ff6600;
-    --neon-lavender: #bf5fff;
-    --neon-green: #00ff88;
-    --electric-blue: #0088ff;
     --neon-cyan:   #00fff9;
     --neon-pink:   #ff006e;
     --neon-yellow: #ffe600;
@@ -482,7 +453,7 @@
     z-index: 100;
   }
 
-  /* ── CURSOR ── */
+  /* CURSOR */
   .cursor {
     width: 16px; height: 16px;
     border: 2px solid var(--neon-cyan); border-radius: 50%;
@@ -497,7 +468,7 @@
     transform: translate(-50%,-50%);
   }
 
-  /* ── BACKGROUND ── */
+  /* BACKGROUND */
   .grid-bg {
     position: fixed; inset: 0;
     background-image:
@@ -539,19 +510,19 @@
   }
   .logo-sub {
     font-family: 'Share Tech Mono', monospace;
-    font-size: .8rem; letter-spacing: .15em; color: rgba(0,255,249,.4);
+    font-size: .85rem; letter-spacing: .15em; color: rgba(0,255,249,.4);
     text-transform: uppercase;
   }
   .nav-links { list-style: none; display: flex; gap: 6px; }
   .nav-link {
     font-family: 'Share Tech Mono', monospace;
-    font-size: .65rem; letter-spacing: .15em; text-transform: uppercase;
+    font-size: .8rem; letter-spacing: .15em; text-transform: uppercase;
     color: rgba(224,224,255,.45); text-decoration: none;
     padding: 8px 14px; border: 1px solid transparent;
     transition: all .25s; cursor: none;
   }
   .nav-link:hover { color: var(--neon-cyan); border-color: rgba(0,255,249,.25); text-shadow: 0 0 8px var(--neon-cyan); }
-  .nav-link--active { color: var(--neon-lavender) !important; border-color: rgba(255,230,0,.3) !important; text-shadow: 0 0 8px var(--neon-lavender) !important; }
+  .nav-link--active { color: var(--neon-yellow) !important; border-color: rgba(255,230,0,.3) !important; text-shadow: 0 0 8px var(--neon-yellow) !important; }
   .nav-link--admin { color: rgba(255,0,110,.6) !important; }
   .nav-cta {
     font-family: 'Share Tech Mono', monospace; font-size: .9rem; letter-spacing: .15em;
@@ -578,11 +549,11 @@
   }
   .header-orb.orb1 { width: 400px; height: 400px; background: rgba(191,0,255,.12); top: -100px; left: -80px; }
   .header-orb.orb2 { width: 300px; height: 300px; background: rgba(0,255,249,.08); bottom: -50px; right: 10%; }
-  .header-inner { position: relative; z-index: 2; max-width: 800px; }
+  .header-inner { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; text-align: center; }
   .header-eyebrow {
     font-family: 'Share Tech Mono', monospace;
-    font-size: .65rem; letter-spacing: .35em; text-transform: uppercase;
-    color: var(--neon-lavender); text-shadow: 0 0 10px var(--neon-lavender);
+    font-size: .8rem; letter-spacing: .35em; text-transform: uppercase;
+    color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow);
     margin-bottom: 16px;
   }
   .header-title {
@@ -590,11 +561,12 @@
     font-size: clamp(3.5rem, 8vw, 9rem); letter-spacing: .04em; line-height: .95;
     margin-bottom: 20px;
   }
-  .header-title span { color: var(--neon-lavender); text-shadow: 0 0 30px var(--neon-lavender); }
+  .header-title span { color: var(--neon-yellow); text-shadow: 0 0 30px var(--neon-yellow); }
   .header-sub {
     font-family: 'Share Tech Mono', monospace;
     font-size: .78rem; color: rgba(224,224,255,.4);
     letter-spacing: .08em; line-height: 1.8; max-width: 500px;
+    margin-left: auto; margin-right: auto; 
   }
 
   /* ════════════ MAIN LAYOUT ════════════ */
@@ -628,7 +600,7 @@
   .panel-corner.br { bottom: 12px; right: 12px; border-bottom: 2px solid var(--neon-cyan); border-right: 2px solid var(--neon-cyan); }
   .panel-eyebrow {
     font-family: 'Share Tech Mono', monospace;
-    font-size: .8rem; letter-spacing: .3em; text-transform: uppercase;
+    font-size: .85rem; letter-spacing: .3em; text-transform: uppercase;
     color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan);
     margin-bottom: 28px;
   }
@@ -638,7 +610,7 @@
   .form-group  { display: flex; flex-direction: column; gap: 8px; }
   .form-label  {
     font-family: 'Share Tech Mono', monospace;
-    font-size: .8rem; letter-spacing: .2em; text-transform: uppercase;
+    font-size: .85rem; letter-spacing: .2em; text-transform: uppercase;
     color: rgba(0,255,249,.6);
   }
   .form-input {
@@ -682,12 +654,12 @@
   .btn-submit {
     font-family: 'Share Tech Mono', monospace;
     font-size: .8rem; letter-spacing: .2em; text-transform: uppercase;
-    background: transparent; color: var(--neon-lavender);
-    border: 1px solid var(--neon-lavender);
+    background: transparent; color: var(--neon-yellow);
+    border: 1px solid var(--neon-yellow);
     padding: 18px 32px; cursor: none;
     transition: all .3s; margin-top: 8px;
     clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
-    text-shadow: 0 0 10px var(--neon-lavender);
+    text-shadow: 0 0 10px var(--neon-yellow);
     box-shadow: 0 0 20px rgba(255,230,0,.15);
   }
   .btn-submit:hover:not(:disabled) {
@@ -700,7 +672,7 @@
 
   .submit-note {
     font-family: 'Share Tech Mono', monospace;
-    font-size: .65rem; letter-spacing: .1em;
+    font-size: .8rem; letter-spacing: .1em;
     color: rgba(0,255,249,.5); text-align: center; line-height: 1.6;
   }
 
@@ -747,7 +719,7 @@
   }
   .drop-sub {
     font-family: 'Share Tech Mono', monospace;
-    font-size: .65rem; letter-spacing: .15em;
+    font-size: .8rem; letter-spacing: .15em;
     color: rgba(224,224,255,.25); margin-bottom: 12px;
   }
   .drop-hint {
@@ -791,7 +763,7 @@
   .tips-title {
     font-family: 'Share Tech Mono', monospace;
     font-size: .58rem; letter-spacing: .25em; text-transform: uppercase;
-    color: var(--neon-lavender); text-shadow: 0 0 8px var(--neon-lavender);
+    color: var(--neon-yellow); text-shadow: 0 0 8px var(--neon-yellow);
     margin-bottom: 14px;
   }
   .tips-list {
@@ -799,13 +771,13 @@
   }
   .tips-list li {
     font-family: 'Share Tech Mono', monospace;
-    font-size: .65rem; letter-spacing: .05em; line-height: 1.5;
+    font-size: .8rem; letter-spacing: .05em; line-height: 1.5;
     color: rgba(224,224,255,.35);
     padding-left: 14px; position: relative;
   }
   .tips-list li::before {
     content: '›'; position: absolute; left: 0;
-    color: var(--neon-lavender); font-size: .8rem;
+    color: var(--neon-yellow); font-size: .8rem;
   }
 
   /* ════════════ LOADING DOTS ════════════ */
@@ -827,13 +799,13 @@
   .footer-desc     { font-family: 'Share Tech Mono', monospace; font-size: .9rem; line-height: 1.8; color: rgba(224,224,255,.3); letter-spacing: .05em; }
   .footer-col-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: .1em; color: rgba(224,224,255,.5); margin-bottom: 20px; }
   .footer-links    { list-style: none; display: flex; flex-direction: column; gap: 12px; }
-  .footer-links a  { font-family: 'Share Tech Mono', monospace; font-size: .65rem; letter-spacing: .1em; color: rgba(224,224,255,.3); text-decoration: none; text-transform: uppercase; transition: color .2s; cursor: none; }
+  .footer-links a  { font-family: 'Share Tech Mono', monospace; font-size: .8rem; letter-spacing: .1em; color: rgba(224,224,255,.3); text-decoration: none; text-transform: uppercase; transition: color .2s; cursor: none; }
   .footer-links a:hover { color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); }
   .admin-link      { color: rgba(255,0,110,.5) !important; }
   .admin-link:hover { color: var(--neon-pink) !important; text-shadow: 0 0 8px var(--neon-pink) !important; }
   .footer-bottom   { grid-column: 1 / -1; padding-top: 30px; border-top: 1px solid rgba(255,255,255,.05); display: flex; justify-content: space-between; align-items: center; }
-  .footer-copy     { font-family: 'Share Tech Mono', monospace; font-size: .8rem; color: rgba(224,224,255,.2); letter-spacing: .12em; }
-  .footer-status   { display: flex; align-items: center; gap: 8px; font-family: 'Share Tech Mono', monospace; font-size: .8rem; color: rgba(0,255,249,.5); letter-spacing: .1em; }
+  .footer-copy     { font-family: 'Share Tech Mono', monospace; font-size: .85rem; color: rgba(224,224,255,.2); letter-spacing: .12em; }
+  .footer-status   { display: flex; align-items: center; gap: 8px; font-family: 'Share Tech Mono', monospace; font-size: .85rem; color: rgba(0,255,249,.5); letter-spacing: .1em; }
   .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--neon-cyan); box-shadow: 0 0 6px var(--neon-cyan); animation: pulse 2s infinite; }
   @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }
 
@@ -859,12 +831,12 @@
   .modal-corner.br { bottom: 10px; right: 10px; border-bottom: 2px solid var(--neon-cyan); border-right: 2px solid var(--neon-cyan); }
   .modal-close { position: absolute; top: 16px; right: 20px; background: transparent; border: none; color: rgba(224,224,255,.3); font-size: 1rem; cursor: none; transition: color .2s; font-family: 'Share Tech Mono', monospace; }
   .modal-close:hover { color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); }
-  .modal-eyebrow { font-family: 'Share Tech Mono', monospace; font-size: .8rem; letter-spacing: .3em; text-transform: uppercase; color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); margin-bottom: 10px; }
+  .modal-eyebrow { font-family: 'Share Tech Mono', monospace; font-size: .85rem; letter-spacing: .3em; text-transform: uppercase; color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); margin-bottom: 10px; }
   .modal-title   { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; line-height: 1; letter-spacing: .05em; margin-bottom: 10px; }
   .modal-title span { color: var(--neon-pink); text-shadow: 0 0 20px var(--neon-pink); }
   .modal-sub     { font-family: 'Share Tech Mono', monospace; font-size: .9rem; color: rgba(224,224,255,.35); letter-spacing: .08em; margin-bottom: 36px; line-height: 1.6; }
   .login-form    { display: flex; flex-direction: column; gap: 20px; }
-  .login-error { font-family: 'Share Tech Mono', monospace; font-size: .65rem; letter-spacing: .15em; color: var(--neon-pink); text-shadow: 0 0 8px var(--neon-pink); text-align: center; padding: 8px; border: 1px solid rgba(255,0,110,.3); background: rgba(255,0,110,.05); }
+  .login-error { font-family: 'Share Tech Mono', monospace; font-size: .8rem; letter-spacing: .15em; color: var(--neon-pink); text-shadow: 0 0 8px var(--neon-pink); text-align: center; padding: 8px; border: 1px solid rgba(255,0,110,.3); background: rgba(255,0,110,.05); }
   .btn-login {
     font-family: 'Share Tech Mono', monospace; font-size: .9rem; letter-spacing: .15em; text-transform: uppercase;
     background: var(--neon-cyan); color: var(--dark); border: none;
@@ -874,7 +846,7 @@
   }
   .btn-login:hover:not(:disabled) { box-shadow: 0 0 50px rgba(0,255,249,.7); transform: translateY(-1px); }
   .btn-login:disabled { opacity: .7; }
-  .login-divider { display: flex; align-items: center; gap: 16px; font-family: 'Share Tech Mono', monospace; font-size: .8rem; letter-spacing: .2em; color: rgba(224,224,255,.2); }
+  .login-divider { display: flex; align-items: center; gap: 16px; font-family: 'Share Tech Mono', monospace; font-size: .85rem; letter-spacing: .2em; color: rgba(224,224,255,.2); }
   .login-divider::before,.login-divider::after { content: ''; flex: 1; height: 1px; background: rgba(224,224,255,.08); }
   .btn-register {
     font-family: 'Share Tech Mono', monospace; font-size: .9rem; letter-spacing: .15em; text-transform: uppercase;
@@ -885,6 +857,6 @@
   }
   .btn-register:hover { background: rgba(191,0,255,.08); border-color: var(--neon-purple); box-shadow: 0 0 20px rgba(191,0,255,.2); }
   .login-footer-text { text-align: center; }
-  .login-footer-text a { font-family: 'Share Tech Mono', monospace; font-size: .8rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(224,224,255,.25); text-decoration: none; transition: color .2s; }
+  .login-footer-text a { font-family: 'Share Tech Mono', monospace; font-size: .85rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(224,224,255,.25); text-decoration: none; transition: color .2s; }
   .login-footer-text a:hover { color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); }
 </style>
