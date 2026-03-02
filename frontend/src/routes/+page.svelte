@@ -103,7 +103,7 @@
   </form>
 
   <ul class="nav-links">
-    <li><a href="/games"    class="nav-link" onclick={(e) => { e.preventDefault(); goTo('/games',    true); }}>ALL GAMES</a></li>
+    <li><a href="/all-games"    class="nav-link" onclick={(e) => { e.preventDefault(); goTo('/games',    true); }}>ALL GAMES</a></li>
     <li><a href="/my-games" class="nav-link" onclick={(e) => { e.preventDefault(); goTo('/my-games', true); }}>MY GAMES</a></li>
     <li><a href="/upload"   class="nav-link" onclick={(e) => { e.preventDefault(); goTo('/upload',   true); }}>UPLOAD</a></li>
     {#if isAdmin}
@@ -145,7 +145,7 @@
 
       <div class="hero-actions">
         <button class="btn-primary" onclick={() => goTo('/games', true)}>ENTER THE VAULT</button>
-        <a href="/games" class="btn-secondary" onclick={(e) => { e.preventDefault(); goTo('/games', true); }}>VIEW LIBRARY</a>
+        <a href="/all-games" class="btn-secondary" onclick={(e) => { e.preventDefault(); goTo('/games', true); }}>VIEW LIBRARY</a>
       </div>
     </div>
 
@@ -199,11 +199,11 @@
   <div class="section-header">
     <h2 class="section-title trending-title">TRENDING</h2>
     <span class="section-tag">// UPDATED WEEKLY</span>
-    <a href="/games" class="section-link" onclick={(e) => { e.preventDefault(); goTo('/games', true); }}>VIEW ALL →</a>
+    <a href="/all-games" class="section-link" onclick={(e) => { e.preventDefault(); goTo('/games', true); }}>VIEW ALL →</a>
   </div>
   <div class="games-grid">
     {#each games as game, i}
-      <a href="/games/{game.slug}" class="game-card">
+      <a href="/all-games/{game.slug}" class="game-card">
         <div class="game-thumb">
           {#if game.image_url}
             <img class="game-thumb-img" src={game.image_url} alt={game.name} />
@@ -277,16 +277,16 @@
   <div>
     <div class="footer-col-title">Vault</div>
     <ul class="footer-links">
-      <li><a href="/games?sort=new">New Releases</a></li>
-      <li><a href="/games?sort=top">Top Rated</a></li>
-      <li><a href="/games?filter=free">Free to Play</a></li>
-      <li><a href="/games?filter=upcoming">Coming Soon</a></li>
+      <li><a href="/all-games?sort=new">New Releases</a></li>
+      <li><a href="/all-games?sort=top">Top Rated</a></li>
+      <li><a href="/all-games?filter=free">Free to Play</a></li>
+      <li><a href="/all-games?filter=upcoming">Coming Soon</a></li>
     </ul>
   </div>
   <div>
     <div class="footer-col-title">Your Space</div>
     <ul class="footer-links">
-      <li><a href="/games">Browse All Games</a></li>
+      <li><a href="/all-games">Browse All Games</a></li>
       <li><a href="/my-games" onclick={(e) => { e.preventDefault(); goTo('/my-games', true); }}>My Games</a></li>
       <li><a href="/upload"   onclick={(e) => { e.preventDefault(); goTo('/upload',   true); }}>Upload a Game</a></li>
       {#if isAdmin}
