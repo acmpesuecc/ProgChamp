@@ -20,8 +20,7 @@
 
   // go to a page, show login first if the user isn't signed in
   function goTo(path: string, requiresAuth = false) {
-    if (requiresAuth && !isLoggedIn) { showLogin = true; }
-    else { goto(path); }
+     goto(path); 
   }
 
   // run a search
@@ -106,9 +105,7 @@
     <li><a href="/all-games"    class="nav-link" onclick={(e) => { e.preventDefault(); goTo('/games',    true); }}>ALL GAMES</a></li>
     <li><a href="/my-games" class="nav-link" onclick={(e) => { e.preventDefault(); goTo('/my-games', true); }}>MY GAMES</a></li>
     <li><a href="/upload"   class="nav-link" onclick={(e) => { e.preventDefault(); goTo('/upload',   true); }}>UPLOAD</a></li>
-    {#if isAdmin}
-      <li><a href="/admin" class="nav-link nav-link--admin">ADMIN</a></li>
-    {/if}
+    <li><a href="/admin" class="nav-link nav-link--admin" onclick={(e) => { e.preventDefault(); goTo('/admin'); }}>⚙ ADMIN</a></li>
   </ul>
 
   {#if isLoggedIn}
