@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@auth/core": "^0.41.1",
+    "@auth/sveltekit": "^1.11.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9"
+  }
+}
