@@ -1,16 +1,10 @@
-import { SvelteKitAuth } from "@auth/sveltekit";
-import Google from "@auth/core/providers/google";
-import { AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from "$env/static/private";
+// src/auth.ts
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:9210';
 
-export const {handle} = SvelteKitAuth({
-    providers: [
-        Google({
-            clientId: GOOGLE_CLIENT_ID,
-            clientSecret: GOOGLE_CLIENT_SECRET
-        })
-    ],
-    secret: AUTH_SECRET,
-    trustHost: true
-});
-
-console.log(process.env.GOOGLE_CLIENT_ID);
+export async function getSession(fetch: typeof globalThis.fetch) {
+  const res = await fetch(`${API_URL}/auth/session`, {
+    credentials: 'include',
+  });
+  if (!res.ok) return null;
+  return res.json(); // { authenticated, needsProfileSetup, user }
+}
