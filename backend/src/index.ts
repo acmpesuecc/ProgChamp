@@ -1,8 +1,24 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
+import auth from "./routes/auth";
+import profile from "./routes/profile";
 
 const app = new Hono();
 
+// remove *
+app.use(
+  "/*",
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true,
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
 app.get("/", (c) => c.text("OK"));
+app.route("/auth", auth);
+app.route("/profile", profile);
 
 export default app;
 
@@ -11,6 +27,4 @@ if (import.meta.main) {
     fetch: app.fetch,
     port: 9210,
   });
-
-  console.log("Backend running on http://localhost:9210");
 }
