@@ -1,3 +1,24 @@
+# ProgChamp
+ProgChamp is a web application that allows users to publish and play games developed by the community. Users can interact through features such as ratings and “superlikes,” helping highlight popular and loved games. The idea is to have a platform where users can enjoy games and also express their creativity.
+<br> ProgChamp can ideally be used for broader applications in the future, utilising and reusing the same base to create more.
+
+_This project is part of ACMPESUECC - AIEP'26._
+
+**Mentors:**
+- [Rehaan Jose Mathew](https://github.com/Rex-8)
+- [Zia Kadijah](https://github.com/zia0307)
+- [Ashmita Chaki](https://github.com/ashyune)
+-  [Mebin Thattil](https://github.com/mebinthattil)
+
+**Mentees:**
+- [Archita Agrawal]()
+- [Pratham Mudakavi](https://github.com/Pratham042006)
+- [Poornaprajna Kashyap](https://github.com/leatfingies)
+- [Syed Ayaan Hasan](https://github.com/ayaanGH06)
+- [Sannidhi Nayak](https://github.com/thisisSandy06)
+
+<hr>
+
 # ProgChamp API Documentation
 
 ## Authentication Endpoints
