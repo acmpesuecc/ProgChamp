@@ -3,16 +3,25 @@
 import type { Session } from "@auth/core/types";
 
 // for information about these interfaces
+// src/app.d.ts
 declare global {
 	namespace App {
-		// interface Error {}
-		interface Locals {
-			getSession(): Promise<Session | null>;
-		}
-		// interface PageData {}
-		// interface PageState {}
-		// interface Platform {}
+	  interface Locals {
+		user?: {
+		  id: string;
+		  email: string;
+		  name: string | null;
+		  avatarUrl: string | null;
+		  userType: string;
+		  superlikesRemaining: number;
+		};
+		session?: {
+		  authenticated: boolean;
+		  needsProfileSetup: boolean;
+		  user?: Locals['user'];
+		};
+	  }
 	}
-}
+  }
+  export {};
 
-export {};
