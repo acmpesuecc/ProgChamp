@@ -8,6 +8,8 @@ export type Submission = {
   thumbnail: File | null;
   status: "pending" | "approved" | "rejected";
   dev: string;
+  genre: string;
+  rejectionReason?: string;
 };
 
 export const submissions = writable<Submission[]>([]);
