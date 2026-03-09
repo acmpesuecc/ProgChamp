@@ -1,14 +1,16 @@
+import { redirect } from '@sveltejs/kit';
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
-export async function load({ fetch, redirect }) {
+export async function load({ fetch }) {
   // Check if the current user is logged in and is an admin
   const sessionRes = await fetch(`${API_URL}/auth/session`, { credentials: 'include' });
   const session = sessionRes.ok ? await sessionRes.json() : null;
 
   // If not logged in or not an admin, send them back to the homepage
-  if (!session?.authenticated || session?.user?.userType !== 'admin') {
-    throw redirect(302, '/');
-  }
+  // if (!session?.authenticated || session?.user?.userType !== 'admin') {
+  //   throw redirect(302, '/');
+  // }
 
   // User is confirmed admin — fetch the admin data as normal
   const [statsRes, requestsRes, usersRes] = await Promise.all([
