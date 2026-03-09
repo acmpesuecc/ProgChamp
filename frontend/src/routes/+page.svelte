@@ -20,7 +20,7 @@
 
   // go to a page, show login first if the user isn't signed in
   function goTo(path: string, requiresAuth = false) {
-     goto(path); 
+    goto(path);
   }
 
   // run a search
@@ -102,10 +102,10 @@
   </form>
 
   <ul class="nav-links">
-    <li><a href="/all-games"    class="nav-link" onclick={(e) => { e.preventDefault(); goTo('/games',    true); }}>ALL GAMES</a></li>
+    <li><a href="/all-games"    class="nav-link" onclick={(e) => { e.preventDefault(); goTo('/all-games',    true); }}>ALL GAMES</a></li>
     <li><a href="/my-games" class="nav-link" onclick={(e) => { e.preventDefault(); goTo('/my-games', true); }}>MY GAMES</a></li>
     <li><a href="/upload"   class="nav-link" onclick={(e) => { e.preventDefault(); goTo('/upload',   true); }}>UPLOAD</a></li>
-    <li><a href="/admin" class="nav-link nav-link--admin" onclick={(e) => { e.preventDefault(); goTo('/admin'); }}>⚙ ADMIN</a></li>
+    <li><a href="/admin" class="nav-link nav-link--admin">ADMIN</a></li>
   </ul>
 
   {#if isLoggedIn}
@@ -141,8 +141,8 @@
       </p>
 
       <div class="hero-actions">
-        <button class="btn-primary" onclick={() => goTo('/games', true)}>ENTER THE VAULT</button>
-        <a href="/all-games" class="btn-secondary" onclick={(e) => { e.preventDefault(); goTo('/games', true); }}>VIEW LIBRARY</a>
+        <button class="btn-primary" onclick={() => goTo('/all-games', true)}>ENTER THE VAULT</button>
+        <a href="/all-games" class="btn-secondary" onclick={(e) => { e.preventDefault(); goTo('/all-games', true); }}>VIEW LIBRARY</a>
       </div>
     </div>
 
@@ -196,7 +196,7 @@
   <div class="section-header">
     <h2 class="section-title trending-title">TRENDING</h2>
     <span class="section-tag">// UPDATED WEEKLY</span>
-    <a href="/all-games" class="section-link" onclick={(e) => { e.preventDefault(); goTo('/games', true); }}>VIEW ALL →</a>
+    <a href="/all-games" class="section-link" onclick={(e) => { e.preventDefault(); goTo('/all-games', true); }}>VIEW ALL →</a>
   </div>
   <div class="games-grid">
     {#each games as game, i}
@@ -236,7 +236,7 @@
   </div>
   <div class="cat-grid">
     {#each categories as cat}
-      <a href="/games?genre={encodeURIComponent(cat.name)}" class="cat-item">
+      <a href="/all-games?genre={encodeURIComponent(cat.name)}" class="cat-item">
         <span class="cat-icon">{cat.icon}</span>
         <div class="cat-name">{cat.name}</div>
       </a>
@@ -286,9 +286,7 @@
       <li><a href="/all-games">Browse All Games</a></li>
       <li><a href="/my-games" onclick={(e) => { e.preventDefault(); goTo('/my-games', true); }}>My Games</a></li>
       <li><a href="/upload"   onclick={(e) => { e.preventDefault(); goTo('/upload',   true); }}>Upload a Game</a></li>
-      {#if isAdmin}
         <li><a href="/admin" class="admin-link">Admin Panel</a></li>
-      {/if}
     </ul>
   </div>
   <div>
