@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import auth from "./routes/auth";
 import profile from "./routes/profile";
+import tagsRoute from './routes/tags';
 import reactions from "./routes/reactions";
 
 const app = new Hono();
@@ -21,6 +22,7 @@ app.get("/", (c) => c.text("OK"));
 app.route("/auth", auth);
 app.route("/profile", profile);
 app.route("/games", reactions)
+app.route("/tags", tagsRoute);
 
 export default app;
 
