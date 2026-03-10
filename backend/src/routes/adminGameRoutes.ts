@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { db } from "../db/index";
 import { gameRequests, userRequests, games, adminActions } from "../db/schema";
 import { requireSession, requireAdmin } from "../lib/middleware";
-import { eq } from "drizzle-orm";
+import { eq, and, lt, or } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { approveGameRequest, getPendingGameRequest } from "../lib/gameRequestService";
 import { getGame } from "../lib/gameService";
@@ -13,28 +13,67 @@ const adminGameRequestRoutes = new Hono();
 
 // Retrieve all game requests
 adminGameRequestRoutes.get(
-    "/",
-    requireSession,
-    requireAdmin,
-    async(c) => {
-        const page = Number(c.req.query("page")) || 1;
-        const pageSize = 20;
+  "/",
+  requireSession,
+  requireAdmin,
+  async (c) => {
+    const cursorParam = c.req.query("cursor")
+    const pageSize = 20
 
-        // Page 1: (1 - 1) * 20 = 0 offset
-        // Page 2: (2 - 1) * 20 = 20 offset
-        const offset = (page - 1) * pageSize;
+    const conditions = [eq(gameRequests.status, "pending")]
 
+    if (cursorParam) {
+      try {
+        const decoded = JSON.parse(atob(cursorParam))
+        const cursorDate = new Date(decoded.createdAt)
 
-        const requests = await db.query.gameRequests.findMany({
-            where: eq(gameRequests.status, "pending"),
-            limit: pageSize,
-            offset: offset,
-            orderBy: (gameRequests, { desc }) => [desc(gameRequests.createdAt)],
-        });
+        if (isNaN(cursorDate.getTime()) || !decoded.id) {
+          return c.json({ error: "Invalid cursor" }, 400)
+        }
 
-        return c.json({requests})
+        // Fetch rows that come after the cursor, using (createdAt, id) as the key.
+        // Rows with the same timestamp are ordered by id to avoid skipping/duplicating.
+        const cursorCondition = or(
+          lt(gameRequests.createdAt, cursorDate),
+          and(
+            eq(gameRequests.createdAt, cursorDate),
+            lt(gameRequests.id, decoded.id)
+          )
+        )
+
+        if (cursorCondition) {
+          conditions.push(cursorCondition)
+        }
+      } catch {
+        return c.json({ error: "Invalid cursor" }, 400)
+      }
     }
-);
+
+    // Fetch one extra record to determine if there's a next page
+    const requests = await db.query.gameRequests.findMany({
+      where: and(...conditions),
+      orderBy: (gameRequests, { desc }) => [
+        desc(gameRequests.createdAt),
+        desc(gameRequests.id), // tiebreaker
+      ],
+      limit: pageSize + 1,
+    })
+
+    const hasNextPage = requests.length > pageSize
+    const page = hasNextPage ? requests.slice(0, pageSize) : requests
+
+    const lastRequest = page.at(-1)
+    const nextCursor = hasNextPage && lastRequest
+      ? btoa(JSON.stringify({ createdAt: lastRequest.createdAt, id: lastRequest.id }))
+      : null
+
+    return c.json({
+      requests: page,
+      nextCursor, // null when on the last page
+    })
+  }
+)
+
 
 // Admin approves games
 adminGameRequestRoutes.post(
