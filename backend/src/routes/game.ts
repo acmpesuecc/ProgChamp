@@ -7,7 +7,7 @@ import { requireSession } from "../lib/middleware";
 
 export const gamesRoute = new Hono();
 
-// ZOD validation
+// zod validation
 const gamesQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(50).default(10),
   cursor: z.coerce.number().optional(),
