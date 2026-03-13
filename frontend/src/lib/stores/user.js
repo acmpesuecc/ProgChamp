@@ -8,7 +8,7 @@ export const user = writable({
     isSignedIn: true,
     name: 'test',
     role: 'dev',
-    usedSuperLikes: 0,
-    maxSuperLikes: 3
+    superlikesUsed: 0,
+    maxSuperlikes: 3
 });
 

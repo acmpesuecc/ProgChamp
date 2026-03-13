@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:9210';
 
 export async function load({ fetch }) {
   // Check if the current user is logged in and is an admin
