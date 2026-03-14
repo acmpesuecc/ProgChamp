@@ -4,6 +4,8 @@ import { db } from "../db";
 import { games, gameReactions } from "../db/schema";
 import { z } from "zod";
 import { requireSession, requireCompleteProfile, reactionRateLimiter } from "../lib/middleware";
+import { getGame } from "../lib/gameService";
+import { NotFoundError, InvalidStateError } from "../lib/errors";
 
 const reactions = new Hono();
 
@@ -38,14 +40,17 @@ reactions.post("/:gameId/react", requireSession, requireCompleteProfile, reactio
 
         const { type: reactionType } = parsed.data;
 
-        // Ensure game exists
-        const game = await db.query.games.findFirst({
-            where: eq(games.id, gameId),
-            columns: { id: true },
-        });
-
-        if (!game) {
+        // Ensure game exists and game is not deactivated
+        try {
+            await getGame(gameId);
+        } catch (error) {
+        if (error instanceof NotFoundError) {
             return c.json({ error: "Game not found" }, 404);
+        }
+        if (error instanceof InvalidStateError) {
+            return c.json({ error: "Game is deactivated" }, 400);
+        }
+        throw error;
         }
 
         // Transaction to avoid race conditions
@@ -154,6 +159,19 @@ reactions.get("/:gameId/reaction", requireSession, requireCompleteProfile, async
     const currentUser = c.get("user");
     const userId = currentUser.id;
     const gameId = c.req.param("gameId");
+
+    // Ensure game exists and is not deactivated
+        try {
+            await getGame(gameId);
+        } catch (error) {
+            if (error instanceof NotFoundError) {
+                return c.json({ error: "Game not found" }, 404);
+            }
+            if (error instanceof InvalidStateError) {
+                return c.json({ error: "Game is deactivated" }, 400);
+            }
+            throw error;
+        }
 
     const reaction = await db.query.gameReactions.findFirst({
         where: and(
