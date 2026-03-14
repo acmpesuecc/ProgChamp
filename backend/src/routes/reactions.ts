@@ -3,7 +3,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { db } from "../db";
 import { games, gameReactions } from "../db/schema";
 import { z } from "zod";
-import { requireSession } from "../lib/middleware";
+import { requireSession, requireCompleteProfile, reactionRateLimiter } from "../lib/middleware";
 
 const reactions = new Hono();
 
@@ -17,7 +17,7 @@ const reactionSchema = z.object({
  * Middleware: requireSession
  * Description: React to a game
  */
-reactions.post("/:gameId/react", requireSession, async (c) => {
+reactions.post("/:gameId/react", requireSession, requireCompleteProfile, reactionRateLimiter, async (c) => {
     try {
         const currentUser = c.get("user");
         const userId = currentUser.id;
@@ -150,7 +150,7 @@ reactions.post("/:gameId/react", requireSession, async (c) => {
  * Middleware: requireSession
  * Description: Get current user's reaction to a game
  */
-reactions.get("/:gameId/reaction", requireSession, async (c) => {
+reactions.get("/:gameId/reaction", requireSession, requireCompleteProfile, async (c) => {
     const currentUser = c.get("user");
     const userId = currentUser.id;
     const gameId = c.req.param("gameId");

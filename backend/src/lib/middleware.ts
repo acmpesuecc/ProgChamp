@@ -163,3 +163,31 @@ export const googleAuthRateLimiter = rateLimiter({
     );
   },
 }) as unknown as MiddlewareHandler;
+
+/**
+ * Middleware: Rate limit game reactions by user and game
+ *
+ * MUST be used after requireSession and requireCompleteProfile middleware
+ *
+ * Guarantees after execution:
+ * - Request is within the allowed rate limit window
+ *
+ * Returns 429 if:
+ * - Client has exceeded 5 reactions within a 20 second window for the same game
+ *
+ * Note: Cast as unknown as MiddlewareHandler to bypass hono-rate-limiter
+ * type incompatibility with Hono's route-level generics
+ */
+export const reactionRateLimiter = rateLimiter({
+  windowMs: 20 * 1000,
+  limit: 5,
+  standardHeaders: "draft-6",
+  keyGenerator: (c) => {
+    const gameId = c.req.param("gameId");
+    const ip =
+      c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
+      c.req.header("x-real-ip") ??
+      "unknown";
+    return `reaction:${ip}:${gameId}`;
+  },
+}) as unknown as MiddlewareHandler;
