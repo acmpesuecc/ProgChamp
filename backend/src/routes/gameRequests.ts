@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { db } from "../db/index";
 import { gameRequests, games } from "../db/schema";
 import { requireSession, requireCompleteProfile } from "../lib/middleware";
-import { canUserSubmitNewGame } from "../lib/gameRequestService";
+import { canUserSubmitRequest } from "../lib/gameRequestService";
 import { nanoid } from "nanoid";
 import { eq, or, lt, and } from "drizzle-orm";
 import { z } from "zod"
@@ -39,7 +39,7 @@ gameRequestsRoutes.post(
                 );
             }
             // Check if the user already has 3 pending new game requests (Current limit 3 may change later)
-            const allowed = await canUserSubmitNewGame(user.id);
+            const allowed = await canUserSubmitRequest(user.id);
 
             if (!allowed) {
                 return c.json({

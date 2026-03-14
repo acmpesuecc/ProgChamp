@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { db } from "../db/index";
 import { requireSession, requireCompleteProfile } from "../lib/middleware";
+import { canUserSubmitRequest } from "../lib/gameRequestService";
 import { nanoid } from "nanoid";
 import { eq, and } from "drizzle-orm";
 import { userRequests } from "../db/schema";
@@ -44,6 +45,16 @@ userRequestRoutes.post(
                 );
             }
             const { requestType, relatedGameId, appealText } = result.data;
+
+            if (requestType === "game_report_appeal") {
+                const allowed = await canUserSubmitRequest(user.id);
+                if (!allowed) {
+                    return c.json({
+                    success: false,
+                    message: "You have reached the limit of 3 pending game submissions. Please  wait for admin approval.",
+                    }, 429);
+                }
+            }
 
             const existing = await db.query.userRequests.findFirst({
                 where: and(

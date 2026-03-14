@@ -1,6 +1,6 @@
 import { db } from "../db/index";
 import { NotFoundError, InvalidStateError } from "../lib/errors";
-import { gameRequests, games, adminActions } from "../db/schema";
+import { gameRequests, games, adminActions, userRequests } from "../db/schema";
 import { eq, and, count } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -63,18 +63,30 @@ export async function approveGameRequest(id: string, adminId: string) {
 }
 
 
-export async function canUserSubmitNewGame(userId: string): Promise<boolean> {
-  const [result] = await db
-    .select({ value: count() })
-    .from(gameRequests)
-    .where(
-      and(
-        eq(gameRequests.submittedBy, userId),
-        eq(gameRequests.requestType, "new_game"),
-        eq(gameRequests.status, "pending")
-      )
-    );
+export async function canUserSubmitRequest(userId: string): Promise<boolean> {
+  const [[gameResult], [userResult]] = await Promise.all([
+    db
+      .select({ value: count() })
+      .from(gameRequests)
+      .where(
+        and(
+          eq(gameRequests.submittedBy, userId),
+          eq(gameRequests.requestType, "new_game"),
+          eq(gameRequests.status, "pending")
+        )
+      ),
+    db
+      .select({ value: count() })
+      .from(userRequests)
+      .where(
+        and(
+          eq(userRequests.submittedBy, userId),
+          eq(userRequests.requestType, "game_report_appeal"),
+          eq(userRequests.status, "pending")
+        )
+      ),
+  ]);
 
-  const pendingCount = result?.value ?? 0;
-  return pendingCount < 3;
+  const total = (gameResult?.value ?? 0) + (userResult?.value ?? 0);
+  return total < 3;
 }
