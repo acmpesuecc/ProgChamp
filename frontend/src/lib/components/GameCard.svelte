@@ -22,7 +22,7 @@
     let { game, showCorner = null }: Props = $props();
   </script>
   
-  <a href="/game/[id]/{game.id}" class="game-card">
+  <a href="/game/{game.id}" class="game-card">
     <div class="game-thumb">
       {#if game.image_url}
         <img class="game-thumb-img" src={game.image_url} alt={game.name} />
