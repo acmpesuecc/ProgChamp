@@ -1,6 +1,7 @@
 export const games = [
+    /*
     {
-        id: 'game-1',
+        id: '1',
         title: 'Game 1',
         devName: 'dev 1',
         description: 'welcome to game 1, this is temporary', //these are temporary T-T
@@ -11,6 +12,20 @@ export const games = [
         superlikes: '5',
         tags: ['arcade', 'classic', 'singleplayer']
     },
+    */
+   {
+    id:          '1',
+    title:       'VOID SYNDICATE',
+    genre:       'Action RPG',
+    dev:         'darkforge',
+    description: 'A brutal top-down action RPG...',
+    url:         'https://yourgame.io',
+    players:     124000,
+    rating:      9.8,
+    publishedAt: '2026-01-10',
+    tags:        ['Roguelike', 'Cyberpunk', 'Singleplayer', 'Controller Support'],
+  },
+    
     {
         id: 'game-2', 
         title: 'Game 2',
