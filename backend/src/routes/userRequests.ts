@@ -8,11 +8,10 @@ import { z } from "zod";
 
 const userRequestRoutes = new Hono();
 
-// Max number of appeals a user can submit per type (across all time, not just pending)
+// Max number of appeals a user can submit per type (lifetime, not just pending)
 const MAX_UNBAN_APPEALS = 3;
 const MAX_GAME_REPORT_APPEALS = 5;
 
-// Zod Schema Validation
 const userRequestSchema = z.discriminatedUnion("requestType", [
   z.object({
     requestType: z.literal("user_unban_appeal"),
@@ -27,9 +26,11 @@ const userRequestSchema = z.discriminatedUnion("requestType", [
 ]);
 
 // User submits an appeal
+// Note: requireCompleteProfile intentionally omitted — a banned user with an
+// incomplete profile must still be able to submit an unban appeal
 userRequestRoutes.post(
   "/",
-  requireSession, // removed requireCompleteProfile — unban appeals shouldn't require a complete profile
+  requireSession,
   async (c) => {
     try {
       const user = c.get("user");
@@ -48,7 +49,7 @@ userRequestRoutes.post(
 
       const { requestType, relatedGameId, appealText } = result.data;
 
-      // Check total appeal count for this type — limits are lifetime, not just pending
+      // Check lifetime appeal count for this type
       const [totalResult] = await db
         .select({ value: count() })
         .from(userRequests)
@@ -91,8 +92,7 @@ userRequestRoutes.post(
         return c.json(
           {
             error: "Appeal already submitted",
-            message:
-              "Your appeal has already been submitted and is pending review.",
+            message: "Your appeal has already been submitted and is pending review.",
           },
           400,
         );
@@ -102,10 +102,10 @@ userRequestRoutes.post(
 
       await db.insert(userRequests).values({
         id: requestId,
-        requestType: requestType,
+        requestType,
         submittedBy: user.id,
         relatedGameId: relatedGameId ?? null,
-        appealText: appealText,
+        appealText,
         status: "pending",
       });
 

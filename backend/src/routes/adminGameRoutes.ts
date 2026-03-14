@@ -30,8 +30,6 @@ adminGameRequestRoutes.get("/", requireSession, requireAdmin, async (c) => {
         return c.json({ error: "Invalid cursor" }, 400);
       }
 
-      // Fetch rows that come after the cursor, using (createdAt, id) as the key.
-      // Rows with the same timestamp are ordered by id to avoid skipping/duplicating.
       const cursorCondition = or(
         lt(gameRequests.createdAt, cursorDate),
         and(
@@ -48,14 +46,21 @@ adminGameRequestRoutes.get("/", requireSession, requireAdmin, async (c) => {
     }
   }
 
-  // Fetch one extra record to determine if there's a next page
   const requests = await db.query.gameRequests.findMany({
     where: and(...conditions),
     orderBy: (gameRequests, { desc }) => [
       desc(gameRequests.createdAt),
-      desc(gameRequests.id), // tiebreaker
+      desc(gameRequests.id),
     ],
     limit: pageSize + 1,
+    with: {
+      media: true,
+      tags: {
+        with: {
+          tag: true,
+        },
+      },
+    },
   });
 
   const hasNextPage = requests.length > pageSize;
@@ -74,7 +79,7 @@ adminGameRequestRoutes.get("/", requireSession, requireAdmin, async (c) => {
 
   return c.json({
     requests: page,
-    nextCursor, // null when on the last page
+    nextCursor,
   });
 });
 
@@ -106,7 +111,7 @@ adminGameRequestRoutes.post(
   },
 );
 
-// Admin rejects  games
+// Admin rejects games
 adminGameRequestRoutes.post(
   "/:id/reject",
   requireSession,
@@ -116,21 +121,32 @@ adminGameRequestRoutes.post(
     const gameRequestId = c.req.param("id");
 
     try {
-      await getPendingGameRequest(gameRequestId);
+      await db.transaction(async (tx) => {
+        const request = await tx.query.gameRequests.findFirst({
+          where: eq(gameRequests.id, gameRequestId),
+        });
 
-      await db
-        .update(gameRequests)
-        .set({
+        if (!request) {
+          throw new NotFoundError("Game request not found");
+        }
+
+        if (request.status !== "pending") {
+          throw new InvalidStateError("Invalid request status");
+        }
+
+        await tx.update(gameRequests).set({
           status: "rejected",
           reviewedBy: admin.id,
           reviewedAt: new Date(),
-        })
-        .where(eq(gameRequests.id, gameRequestId));
+        }).where(eq(gameRequests.id, gameRequestId));
 
-      await db.insert(adminActions).values({
-        id: `aa_${nanoid(16)}`,
-        adminId: admin.id,
-        gameRequestId: gameRequestId,
+        await tx.insert(adminActions).values({
+          id: `aa_${nanoid(16)}`,
+          adminId: admin.id,
+          actionType: "reject_game",
+          decision: "rejected",
+          gameRequestId: gameRequestId,
+        });
       });
 
       return c.json({
@@ -149,7 +165,6 @@ adminGameRequestRoutes.post(
   },
 );
 
-//zod schema validation
 const deactivateSchema = z.object({
   reason: z.string().min(1, "Reason is required"),
 });
@@ -159,33 +174,50 @@ adminGameRequestRoutes.post(
   "/:id/deactivate",
   requireSession,
   requireAdmin,
-
   async (c) => {
     const admin = c.get("user");
     const gameId = c.req.param("id");
     const body = await c.req.json();
     const result = deactivateSchema.safeParse(body);
+
     if (!result.success) {
       return c.json(
         { error: "Validation failed", details: result.error.format() },
         400,
       );
     }
+
     const { reason } = result.data;
 
     try {
-      await getGame(gameId);
+      await db.transaction(async (tx) => {
+        const game = await tx.query.games.findFirst({
+          where: eq(games.id, gameId),
+        });
 
-      await db
-        .update(games)
-        .set({
+        if (!game) {
+          throw new NotFoundError("Game not found");
+        }
+
+        if (!game.isActive) {
+          throw new InvalidStateError("Game is already deactivated");
+        }
+
+        await tx.update(games).set({
           isActive: false,
           deactivatedAt: new Date(),
           deactivationReason: reason,
-        })
-        .where(eq(games.id, gameId));
+        }).where(eq(games.id, gameId));
 
-      // Add admin log for deactivating the game
+        await tx.insert(adminActions).values({
+          id: `aa_${nanoid(16)}`,
+          adminId: admin.id,
+          actionType: "deactivate_game",
+          decision: "deactivated",
+          targetGameId: gameId,
+          notes: reason,
+        });
+      });
 
       return c.json({
         success: true,
