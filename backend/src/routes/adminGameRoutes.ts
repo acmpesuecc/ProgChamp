@@ -117,18 +117,30 @@ adminGameRequestRoutes.post(
     const gameRequestId = c.req.param("id");
 
     try {
-      await getPendingGameRequest(gameRequestId);
+      await db.transaction(async (tx) => {
+        const request = await tx.query.gameRequests.findFirst({
+          where: eq(gameRequests.id, gameRequestId),
+        });
 
-      await db.update(gameRequests).set({
+        if (!request) {
+          throw new NotFoundError("Game request not found");
+        }
+
+        if (request.status !== "pending") {
+          throw new InvalidStateError("Invalid request status");
+        }
+
+        await tx.update(gameRequests).set({
           status: "rejected",
           reviewedBy: admin.id,
           reviewedAt: new Date(),
         }).where(eq(gameRequests.id, gameRequestId));
 
-      await db.insert(adminActions).values({
-        id: `aa_${nanoid(16)}`,
-        adminId: admin.id,
-        gameRequestId: gameRequestId,
+        await tx.insert(adminActions).values({
+          id: `aa_${nanoid(16)}`,
+          adminId: admin.id,
+          gameRequestId: gameRequestId,
+        });
       });
 
       return c.json({
