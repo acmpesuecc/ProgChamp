@@ -83,6 +83,14 @@ frontend/
 └── vite.config.ts
 ```
 
+- [Archita Agrawal]()
+- [Pratham Mudakavi](https://github.com/Pratham042006)
+- [Poornaprajna Kashyap](https://github.com/leatfingies)
+- [Syed Ayaan Hasan](https://github.com/ayaanGH06)
+- [Sannidhi Nayak](https://github.com/thisisSandy06)
+
+<hr>
+
 # ProgChamp API Documentation
 
 ## Authentication Endpoints
