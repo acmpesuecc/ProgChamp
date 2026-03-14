@@ -16,7 +16,7 @@ export async function generateCodeChallenge(verifier: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(verifier);
   const hash = await crypto.subtle.digest("SHA-256", data);
-  
+
   return base64UrlEncode(hash);
 }
 
@@ -37,11 +37,8 @@ function base64UrlEncode(buffer: ArrayBuffer): string {
   for (let i = 0; i < len; i++) {
     binary += String.fromCharCode(bytes[i] as number);
   }
-  
-  return btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
+
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
 /**
@@ -51,7 +48,7 @@ export async function buildGoogleAuthUrl(
   clientId: string,
   redirectUri: string,
   codeChallenge: string,
-  state: string
+  state: string,
 ): Promise<string> {
   const params = new URLSearchParams({
     client_id: clientId,
@@ -64,7 +61,7 @@ export async function buildGoogleAuthUrl(
     code_challenge_method: "S256",
     state,
   });
-  
+
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
@@ -87,29 +84,45 @@ export async function exchangeCodeForTokens(
   codeVerifier: string,
   clientId: string,
   clientSecret: string,
-  redirectUri: string
+  redirectUri: string,
 ): Promise<{ access_token: string; id_token: string }> {
-  const response = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      code,
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uri: redirectUri,
-      grant_type: "authorization_code",
-      code_verifier: codeVerifier,
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+
+  let response: Response;
+  try {
+    response = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+        code_verifier: codeVerifier,
+      }),
+      signal: controller.signal,
+    });
+  } catch (e: any) {
+    if (e.name === "AbortError") {
+      throw new Error("Token exchange timed out after 8 seconds");
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const responseText = await response.text();
 
   if (!response.ok) {
     console.error("Token exchange failed. Status:", response.status);
     console.error("Response:", responseText);
-    throw new Error(`Token exchange failed (${response.status}): ${responseText}`);
+    throw new Error(
+      `Token exchange failed (${response.status}): ${responseText}`,
+    );
   }
 
   try {
@@ -122,7 +135,9 @@ export async function exchangeCodeForTokens(
   } catch (e) {
     console.error("Failed to parse token response as JSON");
     console.error("Response text:", responseText);
-    throw new Error(`Invalid JSON response from Google: ${responseText.substring(0, 200)}`);
+    throw new Error(
+      `Invalid JSON response from Google: ${responseText.substring(0, 200)}`,
+    );
   }
 }
 
@@ -134,20 +149,36 @@ export async function getGoogleUserInfo(accessToken: string): Promise<{
   email: string;
   email_verified: boolean;
 }> {
-  const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-  
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+
+  let response: Response;
+  try {
+    response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      signal: controller.signal,
+    });
+  } catch (e: any) {
+    if (e.name === "AbortError") {
+      throw new Error("Fetching user info timed out after 8 seconds");
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeout);
+  }
+
   const responseText = await response.text();
-  
+
   if (!response.ok) {
     console.error("Get user info failed. Status:", response.status);
     console.error("Response:", responseText);
-    throw new Error(`Failed to fetch user info (${response.status}): ${responseText}`);
+    throw new Error(
+      `Failed to fetch user info (${response.status}): ${responseText}`,
+    );
   }
-  
+
   try {
     const parsed = JSON.parse(responseText);
     const result: { sub: string; email: string; email_verified: boolean } = {
@@ -159,6 +190,8 @@ export async function getGoogleUserInfo(accessToken: string): Promise<{
   } catch (e) {
     console.error("Failed to parse user info response as JSON");
     console.error("Response text:", responseText);
-    throw new Error(`Invalid JSON response from Google: ${responseText.substring(0, 200)}`);
+    throw new Error(
+      `Invalid JSON response from Google: ${responseText.substring(0, 200)}`,
+    );
   }
 }

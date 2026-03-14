@@ -1,0 +1,17 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "rules": {
+    "space-in-parens": ["error", "never"],
+    "object-curly-spacing": ["error", "always"],
+    "array-bracket-spacing": ["error", "never"],
+    "computed-property-spacing": ["error", "never"],
+    "comma-spacing": ["error", { "before": false, "after": true }],
+    "no-multi-spaces": "error",
+    "key-spacing": ["error", { "beforeColon": false, "afterColon": true }]
+  }
+}

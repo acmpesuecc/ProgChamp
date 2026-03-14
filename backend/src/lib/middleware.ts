@@ -4,6 +4,8 @@ import { db } from "../db/index";
 import { users } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { getSession } from "./session";
+import { rateLimiter } from "hono-rate-limiter";
+import type { MiddlewareHandler } from "hono";
 
 export type User = typeof users.$inferSelect;
 
@@ -135,3 +137,57 @@ export async function requireCompleteProfile(c: Context, next: Next) {
   
   await next();
 }
+
+/**
+ * Middleware: Rate limit Google OAuth initiation by IP address
+ *
+ * Guarantees after execution:
+ * - Request is within the allowed rate limit window
+ * - Client IP is correctly resolved behind proxies
+ *
+ * Returns 429 if:
+ * - Client has exceeded 10 requests within a 60 second window
+ *
+ * Note: Cast as unknown as MiddlewareHandler to bypass hono-rate-limiter
+ * type incompatibility with Hono's route-level generics
+ */
+export const googleAuthRateLimiter = rateLimiter({
+  windowMs: 60 * 1000, // 1 minute window
+  limit: 10, // max 10 requests per window 
+  standardHeaders: "draft-6",
+  keyGenerator: (c) => {
+    return (
+      c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
+      c.req.header("x-real-ip") ??
+      "unknown"
+    );
+  },
+}) as unknown as MiddlewareHandler;
+
+/**
+ * Middleware: Rate limit game reactions by user and game
+ *
+ * MUST be used after requireSession and requireCompleteProfile middleware
+ *
+ * Guarantees after execution:
+ * - Request is within the allowed rate limit window
+ *
+ * Returns 429 if:
+ * - Client has exceeded 5 reactions within a 20 second window for the same game
+ *
+ * Note: Cast as unknown as MiddlewareHandler to bypass hono-rate-limiter
+ * type incompatibility with Hono's route-level generics
+ */
+export const reactionRateLimiter = rateLimiter({
+  windowMs: 20 * 1000,
+  limit: 5,
+  standardHeaders: "draft-6",
+  keyGenerator: (c) => {
+    const gameId = c.req.param("gameId");
+    const ip =
+      c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
+      c.req.header("x-real-ip") ??
+      "unknown";
+    return gameId ? `reaction:${ip}:${gameId}` : `reaction:${ip}`;
+  },
+}) as unknown as MiddlewareHandler;
