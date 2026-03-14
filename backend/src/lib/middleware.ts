@@ -188,6 +188,6 @@ export const reactionRateLimiter = rateLimiter({
       c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
       c.req.header("x-real-ip") ??
       "unknown";
-    return `reaction:${ip}:${gameId}`;
+    return gameId ? `reaction:${ip}:${gameId}` : `reaction:${ip}`;
   },
 }) as unknown as MiddlewareHandler;
