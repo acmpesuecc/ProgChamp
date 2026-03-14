@@ -13,7 +13,7 @@ import {
   getGoogleUserInfo,
 } from "../lib/oauth";
 import { createSession, deleteSession, getSession } from "../lib/session";
-import { requireSession } from "../lib/middleware";
+import { requireSession, googleAuthRateLimiter } from "../lib/middleware";
 
 const auth = new Hono();
 
@@ -34,7 +34,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
  * 3. Store verifier and state in httpOnly cookies (short-lived)
  * 4. Redirect to Google OAuth consent screen
  */
-auth.get("/google", async (c) => {
+auth.get("/google", googleAuthRateLimiter, async (c) => {
   try {
     // Generate PKCE parameters
     const codeVerifier = generateCodeVerifier();
@@ -290,7 +290,7 @@ auth.get("/session", async (c) => {
         needsProfileSetup: false,
       });
     }
-    console.log(sessionId);
+
     return c.json({
       authenticated: true,
       needsProfileSetup: !user.profileCompletedAt,
