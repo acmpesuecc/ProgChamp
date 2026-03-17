@@ -29,6 +29,7 @@
     "@libsql/client": "^0.17.0",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.11.4",
+    "hono-rate-limiter": "^0.5.3",
     "nanoid": "^5.1.6",
     "zod": "^4.3.5"
   }

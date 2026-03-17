@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { eq, and, sql } from "drizzle-orm";
 import { db } from "../db";
-import { games, gameReactions, gameSuperlikes } from "../db/schema";
+import { games, gameReactions, gameSuperlikes, users } from "../db/schema";
 import { z } from "zod";
 import {
   requireSession,

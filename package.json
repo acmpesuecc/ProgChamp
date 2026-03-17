@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "hono-rate-limiter": "^0.5.3"
-  }
-}

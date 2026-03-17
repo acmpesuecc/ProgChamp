@@ -100,21 +100,21 @@ auth.get("/google/callback", async (c) => {
     const state = c.req.query("state");
     const error = c.req.query("error");
 
-    // Check for OAuth error
-    if (error) {
-      return c.redirect(`${FRONTEND_URL}/auth/error?error=${error}`);
-    }
-
-    if (!code || !state) {
-      return c.json({ error: "Missing code or state parameter" }, 400);
-    }
-
     // Read OAuth cookies first, then clear them eagerly so they are never
     // left behind regardless of which return path is taken below.
     const storedState = getCookie(c, "oauth_state");
     const codeVerifier = getCookie(c, "oauth_verifier");
     deleteCookie(c, "oauth_state");
     deleteCookie(c, "oauth_verifier");
+
+    // Check for OAuth error
+    if (error) {
+      return c.redirect(`${FRONTEND_URL}/auth/error?error=${error}`);
+    } 
+
+    if (!code || !state) {
+      return c.json({ error: "Missing code or state parameter" }, 400);
+    }
 
     // Validate state (CSRF protection)
     if (!storedState || storedState !== state) {
