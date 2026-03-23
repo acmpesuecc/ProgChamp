@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+
 import auth from "./routes/auth";
 import profile from "./routes/profile";
 import gameRequests from "./routes/gameRequests";
@@ -7,7 +8,6 @@ import userRequests from "./routes/userRequests";
 import adminGameRequests from "./routes/adminGameRoutes";
 import tagsRoute from './routes/tags';
 import reactions from "./routes/reactions";
-
 
 const app = new Hono();
 
@@ -23,6 +23,7 @@ app.use(
 );
 
 app.get("/", (c) => c.text("OK"));
+
 app.route("/auth", auth);
 app.route("/profile", profile);
 app.route("/game-requests", gameRequests); // Accessible at /game-requests
