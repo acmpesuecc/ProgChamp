@@ -189,3 +189,19 @@ export const reactionRateLimiter = rateLimiter({
     return `reaction:${userId}:${gameId}`;
   },
 }) as unknown as MiddlewareHandler;
+
+export const rateLimit = (options: {
+  windowMs: number;
+  max: number;
+}) =>
+  rateLimiter({
+    windowMs: options.windowMs,
+    limit: options.max,
+    standardHeaders: "draft-6",
+    keyGenerator: (c) => {
+      const user = c.get("user");
+      return user?.id?.toString() ??
+        c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
+        "unknown";
+    }
+  }) as unknown as MiddlewareHandler;
