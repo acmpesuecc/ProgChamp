@@ -60,6 +60,9 @@ adminGameRequestRoutes.get("/", requireSession, requireAdmin, async (c) => {
           tag: true,
         },
       },
+      submitter: {
+        columns: { id: true, name: true, avatarUrl: true },
+      },
     },
   });
 
@@ -81,6 +84,35 @@ adminGameRequestRoutes.get("/", requireSession, requireAdmin, async (c) => {
     requests: page,
     nextCursor,
   });
+});
+
+// Retreive a specific game request
+adminGameRequestRoutes.get("/:id", requireSession, requireAdmin, async (c) => {
+  const gameRequestId = c.req.param("id");
+
+  try {
+    const request = await db.query.gameRequests.findFirst({
+      where: eq(gameRequests.id, gameRequestId),
+      with: {
+        media: true,
+        tags: { with: { tag: true } },
+        submitter: {
+          columns: { id: true, name: true, avatarUrl: true, email: true },
+        },
+        reviewer: {
+          columns: { id: true, name: true },
+        },
+      },
+    });
+
+    if (!request) throw new NotFoundError("Game request not found");
+
+    return c.json({ success: true, request });
+  } catch (error) {
+    if (error instanceof NotFoundError) return c.json({ error: error.message }, 404);
+    console.error("Get game request error:", error);
+    return c.json({ error: "Failed to fetch game request" }, 500);
+  }
 });
 
 // Admin approves games

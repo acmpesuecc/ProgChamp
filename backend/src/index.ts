@@ -8,6 +8,8 @@ import userRequests from "./routes/userRequests";
 import adminGameRequests from "./routes/adminGameRoutes";
 import tagsRoute from './routes/tags';
 import reactions from "./routes/reactions";
+import gamesRoute from "./routes/game";
+import adminUserRoutes from "./routes/adminUserRoutes";
 
 const app = new Hono();
 
@@ -31,6 +33,8 @@ app.route("/user-requests", userRequests); // Accessible at /user-requests
 app.route("/admin/game-requests", adminGameRequests); // Accessible at /admin/game-requests
 app.route("/games", reactions)
 app.route("/tags", tagsRoute);
+app.route("/games", gamesRoute);
+app.route("/admin/appeals", adminUserRoutes);
 
 
 export default app;
