@@ -1,10 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { submissions } from '../../lib/stores/submissions';
   import UploadCTA from '$lib/components/UploadCTA.svelte';
-
   import Navbar     from '$lib/components/Navbar.svelte';
   import Footer     from '$lib/components/Footer.svelte';
   import LoginModal from '$lib/components/LoginModal.svelte';
@@ -15,12 +12,50 @@
   let isLoggedIn = $derived(session?.authenticated ?? false);
   let isAdmin    = $derived(user?.userType === 'admin');
 
+  let { data } = $props();
+
   // LOGIN MODAL STATE
   let showLogin = $state(false);
 
   function goTo(path: string, requiresAuth = false) {
     if (requiresAuth && !isLoggedIn) showLogin = true;
     else goto(path);
+  }
+
+  // GAMES STATE
+  let games      = $state(data.games ?? []);
+  let nextCursor = $state(data.nextCursor ?? null);
+  let loading    = $state(false);
+
+  // map raw backend game to display shape
+  function mapGame(g: any) {
+    return {
+      id:          g.id,
+      title:       g.title,
+      genre:       g.tags?.[0]?.tag?.category ?? g.tags?.[0]?.tag?.name ?? 'Uncategorised',
+      dev:         g.creator?.name ?? 'unknown',
+      rating:      g.score ?? 0,
+      players:     g.viewCount ?? 0,
+      thumbnail:   null,
+      publishedAt: new Date(g.createdAt),
+    };
+  }
+
+  let mappedGames = $derived(games.map(mapGame));
+
+  async function loadMore() {
+    if (!nextCursor || loading) return;
+    loading = true;
+    try {
+      const res = await fetch(`/api/games?limit=20&cursor=${encodeURIComponent(nextCursor)}`);
+      if (res.ok) {
+        const d = await res.json();
+        games = [...games, ...(d.games ?? [])];
+        nextCursor = d.nextCursor ?? null;
+      }
+    } finally {
+      loading = false;
+    }
   }
 
   // FILTER / SEARCH STATE
@@ -30,38 +65,14 @@
 
   const genres = ['All', 'Action RPG', 'Shooter', 'Racing', 'Strategy', 'Arcade', 'Space Sim', 'Survival', 'Horror', 'Fighting', 'Puzzle'];
 
-  const staticGames = [
-    { id:'1', title:'VOID SYNDICATE',  genre:'Action RPG', dev:'darkforge',   rating:9.8, players:124000, thumbnail:null, url:'#', publishedAt: new Date('2026-01-10') },
-    { id:'2', title:'ARCTIC BREACH',   genre:'Shooter',    dev:'coldlab',     rating:8.9, players:89000,  thumbnail:null, url:'#', publishedAt: new Date('2026-01-22') },
-    { id:'3', title:'IRON REQUIEM',    genre:'Action RPG', dev:'steelworks',  rating:8.5, players:67000,  thumbnail:null, url:'#', publishedAt: new Date('2026-02-01') },
-    { id:'4', title:'DEEP ROOT',       genre:'Horror',     dev:'mosspit',     rating:9.2, players:52000,  thumbnail:null, url:'#', publishedAt: new Date('2026-02-14') },
-    { id:'5', title:'NEON DRIFT',      genre:'Racing',     dev:'turbostudio', rating:8.7, players:41000,  thumbnail:null, url:'#', publishedAt: new Date('2026-02-20') },
-    { id:'6', title:'PULSE COMBAT',    genre:'Fighting',   dev:'arcadecore',  rating:9.4, players:98000,  thumbnail:null, url:'#', publishedAt: new Date('2026-02-28') },
-    { id:'7', title:'STAR VAGRANT',    genre:'Space Sim',  dev:'voidship',    rating:8.1, players:23000,  thumbnail:null, url:'#', publishedAt: new Date('2026-01-05') },
-    { id:'8', title:'GRID TACTICIAN',  genre:'Strategy',   dev:'hexmind',     rating:8.3, players:31000,  thumbnail:null, url:'#', publishedAt: new Date('2026-01-18') },
-  ];
-
-  let storeGames = $derived(
-    $submissions
-      .filter((s: any) => s.status === 'approved')
-      .map((s: any) => ({
-        id: s.id, title: s.title, genre: s.genre ?? 'Uncategorised',
-        dev: s.dev, rating: 0, players: 0,
-        thumbnail: s.thumbnail ? URL.createObjectURL(s.thumbnail) : null,
-        url: s.url, publishedAt: new Date(),
-      }))
-  );
-
-  let allGames = $derived([...staticGames, ...storeGames]);
-
   let filteredGames = $derived(() => {
-    let result = allGames;
+    let result = mappedGames;
     if (activeGenre !== 'All') result = result.filter((g: any) => g.genre === activeGenre);
     if (searchQuery.trim()) result = result.filter((g: any) =>
       g.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       g.dev.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    if (sortBy === 'newest')  result = [...result].sort((a: any, b: any) => b.publishedAt - a.publishedAt);
+    if (sortBy === 'newest')       result = [...result].sort((a: any, b: any) => b.publishedAt - a.publishedAt);
     else if (sortBy === 'rating')  result = [...result].sort((a: any, b: any) => b.rating - a.rating);
     else if (sortBy === 'players') result = [...result].sort((a: any, b: any) => b.players - a.players);
     return result;
@@ -97,7 +108,7 @@
   <div class="header-inner">
     <div class="header-eyebrow">// THE VAULT</div>
     <h1 class="header-title">ALL <span>GAMES</span></h1>
-    <p class="header-sub">{allGames.length} titles available.</p>
+    <p class="header-sub">{mappedGames.length} titles available.</p>
   </div>
 </header>
 
@@ -155,6 +166,13 @@
         </a>
       {/each}
     </div>
+    {#if nextCursor}
+      <div class="load-more-wrap">
+        <button class="load-more-btn" onclick={loadMore} disabled={loading}>
+          {loading ? 'LOADING...' : 'LOAD MORE'}
+        </button>
+      </div>
+    {/if}
   {/if}
 </main>
 
@@ -217,4 +235,8 @@
   .empty-icon{font-size:4rem;color:rgba(0,255,249,.15);margin-bottom:20px;}
   .empty-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.1em;color:rgba(224,224,255,.3);margin-bottom:10px;}
   .empty-sub{font-family:'Share Tech Mono',monospace;font-size:.7rem;letter-spacing:.1em;color:rgba(224,224,255,.2);}
+  .load-more-wrap{display:flex;justify-content:center;margin-top:48px;}
+  .load-more-btn{font-family:'Share Tech Mono',monospace;font-size:.7rem;letter-spacing:.2em;color:var(--neon-cyan);border:1px solid rgba(0,255,249,.3);background:rgba(0,255,249,.03);padding:14px 40px;cursor:none;transition:all .25s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+  .load-more-btn:hover:not(:disabled){border-color:var(--neon-cyan);box-shadow:0 0 20px rgba(0,255,249,.15);}
+  .load-more-btn:disabled{opacity:.4;}
 </style>

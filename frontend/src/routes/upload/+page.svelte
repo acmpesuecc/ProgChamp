@@ -2,7 +2,6 @@
   
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { submissions } from '../../lib/stores/submissions';
 
   import Navbar     from '$lib/components/Navbar.svelte';
   import Footer     from '$lib/components/Footer.svelte';
@@ -17,6 +16,10 @@
 
   // LOGIN MODAL STATE
   let showLogin = $state(false);
+
+  // GAME MEDIA
+  let video        = $state<File | null>(null);
+  let videoPreview = $state<string | null>(null);
 
   function goTo(path: string, requiresAuth = false) {
     if (requiresAuth && !isLoggedIn) showLogin = true;
@@ -62,34 +65,52 @@
 
   // SUBMIT
   async function handleSubmit(e: Event) {
-    e.preventDefault();
-    if (!title || !description || !url || !thumbnail) return;
-    isSubmitting = true;
+  e.preventDefault();
+  if (!title || !description || !url) return;
+  isSubmitting = true;
 
-    await new Promise(r => setTimeout(r, 1400));
+  try {
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('gameUrl', url.startsWith('https://') ? url : `https://${url}`);
+    if (thumbnail) formData.append('thumbnail', thumbnail);
+    if (video) formData.append('video', video);
 
-    submissions.update(list => [
-      ...list,
-      {
-        id:          crypto.randomUUID(),
-        title,
-        description,
-        url,
-        genre,
-        thumbnail,
-        status:      'pending',
-        dev:         user?.name ?? 'Anonymous',
-      }
-    ]);
+    const res = await fetch('/api/game-requests', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      console.error('Submission failed:', err);
+      isSubmitting = false;
+      return;
+    }
 
     isSubmitting = false;
-    submitted    = true;
+    submitted = true;
 
     setTimeout(() => {
-      submitted   = false;
-      title       = description = url = genre = '';
-      thumbnail   = preview = null;
+      submitted  = false;
+      title      = description = url = genre = '';
+      thumbnail  = preview = null;
+      video      = videoPreview = null;
     }, 3000);
+
+  } catch (err) {
+    console.error('Submission error:', err);
+    isSubmitting = false;
+  }
+  }
+
+  function handleVideoChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file || !file.type.startsWith('video/')) return;
+  video = file;
+  videoPreview = file.name;
   }
 </script>
 
@@ -181,7 +202,7 @@
         <button
           type="submit"
           class="btn-submit"
-          disabled={isSubmitting || submitted || !title || !description || !url || !thumbnail}
+          disabled={isSubmitting || submitted || !title || !description || !url}
         >
           {#if submitted}
             <span class="success-text">✓ SUBMITTED FOR REVIEW</span>
@@ -246,6 +267,33 @@
           <li>Upload content must not contain sensitive or offensive information of any kind</li>
         </ul>
       </div>
+      <div class="video-section">
+      <div class="panel-eyebrow" style="margin-top: 28px;">// GAMEPLAY VIDEO</div>
+      <div class="video-drop" class:has-video={!!video}>
+        {#if video}
+          <div class="video-name">
+            <span class="video-icon">▶</span>
+            <span>{videoPreview}</span>
+          </div>
+          <button class="video-clear" onclick={() => { video = null; videoPreview = null; }}>✕ REMOVE</button>
+        {:else}
+          <div class="dropzone-content">
+            <div class="drop-icon">▶</div>
+            <div class="drop-label">GAMEPLAY VIDEO</div>
+            <div class="drop-sub">or click to browse</div>
+            <div class="drop-hint">MP4, WEBM · Max 50MB</div>
+          </div>
+        {/if}
+        <label for="video-input" class="dropzone-label" aria-label="Upload video"></label>
+        <input
+          id="video-input"
+          type="file"
+          accept="video/*"
+          class="file-input-hidden"
+          onchange={handleVideoChange}
+        />
+      </div>
+    </div>
     </div>
 
   </div>
@@ -407,4 +455,11 @@
   .loading-dots span:nth-child(2) { animation-delay: .2s; }
   .loading-dots span:nth-child(3) { animation-delay: .4s; }
   @keyframes dotBlink { 0%,80%,100% { opacity:0 } 40% { opacity:1 } }
+  .video-drop{position:relative;border:1px dashed rgba(191,0,255,.25);min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:border-color .3s,background .3s;cursor:none;overflow:hidden;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);}
+  .video-drop:hover{border-color:rgba(191,0,255,.5);}
+  .video-drop.has-video{border-style:solid;border-color:rgba(191,0,255,.3);background:rgba(191,0,255,.03);}
+  .video-name{display:flex;align-items:center;gap:10px;font-family:'Share Tech Mono',monospace;font-size:.75rem;letter-spacing:.08em;color:rgba(224,224,255,.6);padding:0 20px;text-align:center;}
+  .video-icon{color:var(--neon-purple);text-shadow:0 0 8px var(--neon-purple);}
+  .video-clear{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.15em;color:rgba(255,0,110,.6);border:1px solid rgba(255,0,110,.2);background:transparent;padding:6px 14px;cursor:none;transition:all .25s;clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);}
+  .video-clear:hover{color:var(--neon-pink);border-color:var(--neon-pink);}
 </style>

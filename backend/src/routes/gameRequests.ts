@@ -6,12 +6,14 @@ import { canUserSubmitRequest } from "../lib/gameRequestService";
 import { nanoid } from "nanoid";
 import { eq, or, lt, and } from "drizzle-orm";
 import { z } from "zod";
+import { uploadToR2 } from "../lib/r2";
+import { gameMedia } from "../db/schema";
 
 const gameRequestsRoutes = new Hono();
 
 const gameSubmissionSchema = z.object({
   title: z.string().min(1).max(100),
-  gameUrl: z.string().min(1),
+  gameUrl: z.string().url(),
   description: z.string().optional(),
 });
 
@@ -23,28 +25,24 @@ gameRequestsRoutes.post(
     try {
       const user = c.get("user");
 
-      const body = await c.req.json();
-      const result = gameSubmissionSchema.safeParse(body);
+      const body = await c.req.parseBody();
+
+      const result = gameSubmissionSchema.safeParse({
+        title: body.title,
+        gameUrl: body.gameUrl,
+        description: body.description || undefined,
+      });
+
       if (!result.success) {
-        return c.json(
-          {
-            error: "Invalid request",
-            details: result.error.format(),
-          },
-          400,
-        );
+        return c.json({ error: "Invalid request", details: result.error.format() }, 400);
       }
 
       const allowed = await canUserSubmitRequest(user.id);
       if (!allowed) {
-        return c.json(
-          {
-            success: false,
-            message:
-              "You have reached the limit of 3 pending game submissions. Please wait for admin approval.",
-          },
-          429,
-        );
+        return c.json({
+          success: false,
+          message: "You have reached the limit of 3 pending game submissions. Please wait for admin approval.",
+        }, 429);
       }
 
       const { title, gameUrl, description } = result.data;
@@ -69,21 +67,34 @@ gameRequestsRoutes.post(
         ),
       });
 
-      if (existingGame)
-        return c.json({ success: false, message: "Game already exists" }, 400);
-      if (existing)
-        return c.json(
-          { success: false, message: "Game request already submitted" },
-          400,
-        );
-      if (rejectedGame)
-        return c.json(
-          { success: false, message: "Game request has already been rejected" },
-          400,
-        );
+      if (existingGame) return c.json({ success: false, message: "Game already exists" }, 400);
+      if (existing) return c.json({ success: false, message: "Game request already submitted" }, 400);
+      if (rejectedGame) return c.json({ success: false, message: "Game request has already been rejected" }, 400);
 
       const requestId = `gr_${nanoid(16)}`;
 
+      // Handle thumbnail
+      const thumbnailFile = body.thumbnail instanceof File ? body.thumbnail : null;
+      const videoFile = body.video instanceof File ? body.video : null;
+
+      // Validate file sizes
+      const MAX_IMAGE_SIZE = 5 * 1024 * 1024;   // 5MB
+      const MAX_VIDEO_SIZE = 50 * 1024 * 1024;  // 50MB
+
+      if (thumbnailFile && thumbnailFile.size > MAX_IMAGE_SIZE) {
+        return c.json({ success: false, message: "Thumbnail must be under 5MB" }, 400);
+      }
+      if (videoFile && videoFile.size > MAX_VIDEO_SIZE) {
+        return c.json({ success: false, message: "Video must be under 50MB" }, 400);
+      }
+      if (thumbnailFile && !thumbnailFile.type.startsWith("image/")) {
+        return c.json({ success: false, message: "Thumbnail must be an image" }, 400);
+      }
+      if (videoFile && !videoFile.type.startsWith("video/")) {
+        return c.json({ success: false, message: "Video must be a video file" }, 400);
+      }
+
+      // Insert game request
       await db.insert(gameRequests).values({
         id: requestId,
         requestType: "new_game",
@@ -92,23 +103,63 @@ gameRequestsRoutes.post(
         description,
         gameUrl,
         status: "pending",
-        // coverMediaId starts null — caller updates it after uploading media
       });
+
+      // Upload thumbnail to R2 and insert media row
+      let coverMediaId: string | null = null;
+
+      if (thumbnailFile) {
+        const ext = thumbnailFile.name.split('.').pop() ?? 'jpg';
+        const r2Key = `game-requests/${requestId}/cover.${ext}`;
+        const buffer = await thumbnailFile.arrayBuffer();
+        await uploadToR2(r2Key, buffer, thumbnailFile.type);
+
+        const mediaId = `gm_${nanoid(16)}`;
+        await db.insert(gameMedia).values({
+          id: mediaId,
+          gameRequestId: requestId,
+          mediaType: "image",
+          r2Key,
+          isCover: true,
+          sortOrder: 0,
+        });
+        coverMediaId = mediaId;
+      }
+
+      // Upload video to R2 and insert media row
+      if (videoFile) {
+        const ext = videoFile.name.split('.').pop() ?? 'mp4';
+        const r2Key = `game-requests/${requestId}/video.${ext}`;
+        const buffer = await videoFile.arrayBuffer();
+        await uploadToR2(r2Key, buffer, videoFile.type);
+
+        const mediaId = `gm_${nanoid(16)}`;
+        await db.insert(gameMedia).values({
+          id: mediaId,
+          gameRequestId: requestId,
+          mediaType: "video",
+          r2Key,
+          isCover: false,
+          sortOrder: 1,
+        });
+      }
+
+      // Update coverMediaId if thumbnail was uploaded
+      if (coverMediaId) {
+        await db.update(gameRequests)
+          .set({ coverMediaId })
+          .where(eq(gameRequests.id, requestId));
+      }
 
       return c.json({
         success: true,
         message: "Game request has been submitted successfully",
         requestId,
       });
+
     } catch (error) {
       console.error("An unexpected error occurred", error);
-      return c.json(
-        {
-          success: false,
-          message: "An unexpected error occurred",
-        },
-        500,
-      );
+      return c.json({ success: false, message: "An unexpected error occurred" }, 500);
     }
   },
 );

@@ -1,58 +1,102 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { page } from '$app/state';
+import { goto } from '$app/navigation';
+import { page } from '$app/state';
 
-  import Navbar     from '$lib/components/Navbar.svelte';
-  import Footer     from '$lib/components/Footer.svelte';
-  import LoginModal from '$lib/components/LoginModal.svelte';
+import Navbar     from '$lib/components/Navbar.svelte';
+import Footer     from '$lib/components/Footer.svelte';
+import LoginModal from '$lib/components/LoginModal.svelte';
 
-  // AUTH
-  let session    = $derived(page.data.session);
-  let user       = $derived(session?.user);
-  let isLoggedIn = $derived(session?.authenticated ?? false);
-  let isAdmin    = $derived(user?.userType === 'admin');
-  let { data } = $props();
-  let game = $derived(data.game);
+// AUTH
+let session    = $derived(page.data.session);
+let user       = $derived(session?.user);
+let isLoggedIn = $derived(session?.authenticated ?? false);
+let isAdmin    = $derived(user?.userType === 'admin');
+let { data } = $props();
+let game = $derived(data.game);
 
-  // LOGIN MODAL STATE
-  let showLogin = $state(false);
+// LOGIN MODAL STATE
+let showLogin = $state(false);
 
-  function goTo(path: string, requiresAuth = false) {
-    if (requiresAuth && !isLoggedIn) showLogin = true;
-    else goto(path);
+function goTo(path: string, requiresAuth = false) {
+  if (requiresAuth && !isLoggedIn) showLogin = true;
+  else goto(path);
+}
+
+// REACTION STATE — seeded from server
+const initialLikes        = data.game.countLikes      ?? 0;
+const initialDislikes     = data.game.countDislikes   ?? 0;
+const initialSuperlikes   = data.game.countSuperlikes ?? 0;
+const initialReaction     = data.userReaction;
+const initialSuperliked   = data.userSuperliked;
+
+let likes        = $state(initialLikes);
+let dislikes     = $state(initialDislikes);
+let superlikes   = $state(initialSuperlikes);
+let userReaction   = $state<'like' | 'dislike' | null>(initialReaction);
+let userSuperliked = $state<boolean>(initialSuperliked);
+
+
+async function react(type: 'like' | 'dislike') {
+  if (!isLoggedIn) { showLogin = true; return; }
+
+  // Optimistic update
+  const prevReaction = userReaction;
+  if (userReaction === type) {
+    if (type === 'like')    likes--;
+    if (type === 'dislike') dislikes--;
+    userReaction = null;
+  } else {
+    if (userReaction === 'like')    likes--;
+    if (userReaction === 'dislike') dislikes--;
+    if (type === 'like')    likes++;
+    if (type === 'dislike') dislikes++;
+    userReaction = type;
   }
 
-  // REACTION STATE
-  let userReaction = $state<'like' | 'dislike' | 'superlike' | null>(null);
-  let likes      = $state(8421);
-  let dislikes   = $state(312);
-  let superlikes = $state(1093);
+  try {
+    const res = await fetch(`/api/games/${game.id}/react`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type }),
+    });
+    if (!res.ok) throw new Error();
+  } catch {
+    // Rollback
+    userReaction = prevReaction;
+    likes    = initialLikes;
+    dislikes = initialDislikes;
+  }
+}
 
-  function react(type: 'like' | 'dislike' | 'superlike') {
-    if (!isLoggedIn) { showLogin = true; return; }
-    if (userReaction === type) {
-      // undo
-      if (type === 'like')      likes--;
-      if (type === 'dislike')   dislikes--;
-      if (type === 'superlike') superlikes--;
-      userReaction = null;
-    } else {
-      // undo previous
-      if (userReaction === 'like')      likes--;
-      if (userReaction === 'dislike')   dislikes--;
-      if (userReaction === 'superlike') superlikes--;
-      // apply new
-      if (type === 'like')      likes++;
-      if (type === 'dislike')   dislikes++;
-      if (type === 'superlike') superlikes++;
-      userReaction = type;
-    }
+async function superlike() {
+  if (!isLoggedIn) { showLogin = true; return; }
+
+  // Optimistic update
+  const prevSuperliked = userSuperliked;
+  if (userSuperliked) {
+    superlikes--;
+    userSuperliked = false;
+  } else {
+    superlikes++;
+    userSuperliked = true;
   }
 
-  function formatCount(n: number) {
-    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-    return n.toString();
+  try {
+    const res = await fetch(`/api/games/${game.id}/superlike`, {
+      method: 'POST',
+    });
+    if (!res.ok) throw new Error();
+  } catch {
+    // Rollback
+    userSuperliked = prevSuperliked;
+    superlikes = initialSuperlikes;
   }
+}
+
+function formatCount(n: number) {
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n.toString();
+}
 
   // SIDEBAR GAMES
   const sidebarGames = [
@@ -98,7 +142,7 @@
       <div class="player-corner tl"></div>
       <div class="player-corner br"></div>
       <iframe
-        src={game.url}
+        src={game.gameUrl}
         title={game.title}
         class="game-frame"
         allowfullscreen
@@ -110,14 +154,14 @@
     <div class="info-block">
       <div class="info-top">
         <div class="info-left">
-          <div class="game-genre-tag">{game.genre.toUpperCase()}</div>
+          <div class="game-genre-tag">{(game.tags[0]?.tag?.category ?? game.tags[0]?.tag?.name ?? 'GAME').toUpperCase()}</div>
           <h1 class="game-title">{game.title}</h1>
           <div class="game-meta-row">
-            <span class="meta-dev">by <em>{game.dev}</em></span>
+            <span class="meta-dev">by <em>{game.creator?.name ?? 'unknown'}</em></span>
             <span class="meta-sep">·</span>
-            <span class="meta-players">{formatPlayers(game.players)} PLAYING</span>
+            <span class="meta-players">{formatPlayers(game.viewCount ?? 0)} PLAYING</span>
             <span class="meta-sep">·</span>
-            <span class="meta-rating">★ {game.rating}</span>
+            <span class="meta-rating">★ {game.score ?? '—'}</span>
           </div>
         </div>
 
@@ -125,8 +169,8 @@
         <div class="reactions">
           <button
             class="react-btn react-btn--superlike"
-            class:active={userReaction === 'superlike'}
-            onclick={() => react('superlike')}
+            class:active={userSuperliked}
+            onclick={() => superlike()}
             title="Superlike"
           >
             <span class="react-icon">⚡</span>
@@ -141,7 +185,7 @@
             class:active={userReaction === 'like'}
             onclick={() => react('like')}
             title="Like"
-          >
+            >
             <span class="react-icon">▲</span>
             <span class="react-count">{formatCount(likes)}</span>
           </button>
@@ -151,7 +195,7 @@
             class:active={userReaction === 'dislike'}
             onclick={() => react('dislike')}
             title="Dislike"
-          >
+            >
             <span class="react-icon">▼</span>
             <span class="react-count">{formatCount(dislikes)}</span>
           </button>
@@ -165,16 +209,16 @@
       <div class="info-bottom">
         <div class="dev-card">
           <div class="dev-avatar">
-            <span>{game.dev[0].toUpperCase()}</span>
+            <span>{(game.creator?.name?.[0] ?? '?').toUpperCase()}</span>
           </div>
           <div>
-            <div class="dev-name">{game.dev.toUpperCase()}</div>
+            <div class="dev-name">{(game.creator?.name ?? 'unknown').toUpperCase()}</div>
             <div class="dev-label">// DEVELOPER</div>
           </div>
         </div>
         <p class="game-desc">{game.description}</p>
         <div class="tag-row">
-          {#each game.tags as tag}
+          {#each game.tags.map(t => t.tag.name) as tag}
             <span class="tag">{tag.toUpperCase()}</span>
           {/each}
         </div>
