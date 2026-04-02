@@ -248,7 +248,7 @@ auth.get("/google/callback", async (c) => {
       return c.redirect(`${FRONTEND_URL}/profile/setup`);
     } else {
       // Returning user with complete profile -> home
-      return c.redirect(`${FRONTEND_URL}/home`);
+      return c.redirect(`${FRONTEND_URL}/`);
     }
   } catch (error) {
     console.error("OAuth callback error:", error);

@@ -1,10 +1,10 @@
 // src/hooks.server.ts
-import type { Handle } from '@sveltejs/kit';
+import type { Handle } from "@sveltejs/kit";
 
-const API_URL = process.env.VITE_API_URL ?? 'http://localhost:9210';
+const API_URL = process.env.VITE_API_URL ?? "http://localhost:9210";
 
 export const handle: Handle = async ({ event, resolve }) => {
-  const sessionId = event.cookies.get('session_id');
+  const sessionId = event.cookies.get("session_id");
 
   if (sessionId) {
     try {
