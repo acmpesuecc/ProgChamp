@@ -1,5 +1,6 @@
 <script lang="ts">
-  
+
+  import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
 
@@ -63,47 +64,11 @@
   function handleDragOver(e: DragEvent) { e.preventDefault(); isDragging = true; }
   function handleDragLeave() { isDragging = false; }
 
-  // SUBMIT
-  async function handleSubmit(e: Event) {
-  e.preventDefault();
-  if (!title || !description || !url) return;
-  isSubmitting = true;
+  
 
-  try {
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('description', description);
-    formData.append('gameUrl', url.startsWith('https://') ? url : `https://${url}`);
-    if (thumbnail) formData.append('thumbnail', thumbnail);
-    if (video) formData.append('video', video);
+  
 
-    const res = await fetch('/api/game-requests', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      console.error('Submission failed:', err);
-      isSubmitting = false;
-      return;
-    }
-
-    isSubmitting = false;
-    submitted = true;
-
-    setTimeout(() => {
-      submitted  = false;
-      title      = description = url = genre = '';
-      thumbnail  = preview = null;
-      video      = videoPreview = null;
-    }, 3000);
-
-  } catch (err) {
-    console.error('Submission error:', err);
-    isSubmitting = false;
-  }
-  }
+   
 
   function handleVideoChange(e: Event) {
   const input = e.target as HTMLInputElement;
@@ -149,8 +114,28 @@
       <div class="panel-corner br"></div>
       <div class="panel-eyebrow">// GAME DETAILS</div>
 
-      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-      <form onsubmit={handleSubmit} class="upload-form">
+      <form 
+  method="POST" 
+  enctype="multipart/form-data" 
+  class="upload-form"
+  use:enhance={({ formData }) => {
+    if (genre) formData.append('genre', genre);
+    isSubmitting = true;
+    return async ({ result, update }) => {
+      isSubmitting = false;
+      if (result.type === 'success' && result.data?.success) {
+        submitted = true;
+        setTimeout(() => {
+          submitted  = false;
+          title      = description = url = genre = '';
+          thumbnail  = preview = null;
+          video      = videoPreview = null;
+        }, 3000);
+      }
+      await update();
+    };
+  }}
+>
 
         <div class="form-group">
           <label class="form-label" for="title">GAME TITLE</label>
