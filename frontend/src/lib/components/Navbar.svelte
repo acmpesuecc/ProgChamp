@@ -36,6 +36,14 @@
           goto(`/all-games?q=${encodeURIComponent(q)}`);
         }
       }
+
+    function handleNav(path: string, requiresAuth = false) {
+      if (requiresAuth && !isLoggedIn) {
+        onLoginClick(); // This opens your modal
+      } else {
+        goto(path);
+      }
+    }
     
     function handleInput(e: Event) {
         const q = (e.target as HTMLInputElement).value;
@@ -127,12 +135,19 @@
     </form>
   
     <ul class="nav-links">
-      <li><button class="nav-link" onclick={goAllGames}>ALL GAMES</button></li>
-      <li><button class="nav-link" onclick={goMyGames}>MY GAMES</button></li>
-      <li><button class="nav-link" onclick={goUpload}>UPLOAD</button></li>
-      {#if isAdmin}
-        <li><button class="nav-link nav-link--admin" onclick={goAdmin}>ADMIN</button></li>
-      {/if}
+      <li><a href="/all-games" class="nav-link">ALL GAMES</a></li>
+
+      <li>
+        <button class="nav-link" onclick={() => handleNav('/my-games', true)}>
+          MY GAMES
+        </button>
+      </li>
+
+      <li>
+        <button class="nav-link" onclick={() => handleNav('/upload', true)}>
+          UPLOAD
+        </button>
+      </li>
     </ul>
 
   
