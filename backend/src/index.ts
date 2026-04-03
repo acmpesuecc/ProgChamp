@@ -10,6 +10,7 @@ import tagsRoute from './routes/tags';
 import reactions from "./routes/reactions";
 import gamesRoute from "./routes/game";
 import adminUserRoutes from "./routes/adminUserRoutes";
+import adminRoutes from "./routes/admin";
 
 const app = new Hono();
 
@@ -34,7 +35,8 @@ app.route("/admin/game-requests", adminGameRequests); // Accessible at /admin/ga
 app.route("/games", reactions)
 app.route("/tags", tagsRoute);
 app.route("/games", gamesRoute);
-app.route("/admin/appeals", adminUserRoutes);
+app.route("/admin", adminUserRoutes)
+app.route("/admin", adminRoutes);
 
 
 export default app;
