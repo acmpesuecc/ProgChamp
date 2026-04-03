@@ -64,18 +64,12 @@
   function handleDragOver(e: DragEvent) { e.preventDefault(); isDragging = true; }
   function handleDragLeave() { isDragging = false; }
 
-  
-
-  
-
-   
-
   function handleVideoChange(e: Event) {
-  const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file || !file.type.startsWith('video/')) return;
-  video = file;
-  videoPreview = file.name;
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !file.type.startsWith('video/')) return;
+    video = file;
+    videoPreview = file.name;
   }
 </script>
 
@@ -84,7 +78,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Oxanium:wght@300;400;600;800&display=swap" rel="stylesheet" />
 </svelte:head>
 
-<!-- NAV (replaces cursor divs + grid-bg + noise + raw <nav>) -->
+<!-- NAV -->
 <Navbar
   {isLoggedIn}
   {isAdmin}
@@ -114,33 +108,41 @@
       <div class="panel-corner br"></div>
       <div class="panel-eyebrow">// GAME DETAILS</div>
 
-      <form 
-  method="POST" 
-  enctype="multipart/form-data" 
-  class="upload-form"
-  use:enhance={({ formData }) => {
-    if (genre) formData.append('genre', genre);
-    isSubmitting = true;
-    return async ({ result, update }) => {
-      isSubmitting = false;
-      if (result.type === 'success' && result.data?.success) {
-        submitted = true;
-        setTimeout(() => {
-          submitted  = false;
-          title      = description = url = genre = '';
-          thumbnail  = preview = null;
-          video      = videoPreview = null;
-        }, 3000);
-      }
-      await update();
-    };
-  }}
->
+      <form
+        method="POST"
+        enctype="multipart/form-data"
+        class="upload-form"
+        use:enhance={({ formData }) => {
+          if (genre) formData.append('genre', genre);
+          // Prepend https:// to url if not already present
+          const rawUrl = formData.get('gameUrl') as string;
+          if (rawUrl && !rawUrl.startsWith('http')) {
+            formData.set('gameUrl', `https://${rawUrl}`);
+          }
+          if (thumbnail) formData.set('thumbnail', thumbnail);
+          if (video) formData.set('video', video);
+          isSubmitting = true;
+          return async ({ result, update }) => {
+            isSubmitting = false;
+            if (result.type === 'success' && result.data?.success) {
+              submitted = true;
+              setTimeout(() => {
+                submitted    = false;
+                title        = description = url = genre = '';
+                thumbnail    = preview = null;
+                video        = videoPreview = null;
+              }, 3000);
+            }
+            await update();
+          };
+        }}
+      >
 
         <div class="form-group">
           <label class="form-label" for="title">GAME TITLE</label>
           <input
             id="title"
+            name="title"
             class="form-input"
             placeholder="e.g. VOID SYNDICATE"
             bind:value={title}
@@ -162,6 +164,7 @@
           <label class="form-label" for="description">DESCRIPTION</label>
           <textarea
             id="description"
+            name="description"
             class="form-input form-textarea"
             placeholder="Describe your game — genre, mechanics, what makes it worth playing..."
             bind:value={description}
@@ -176,6 +179,7 @@
             <span class="input-prefix">https://</span>
             <input
               id="url"
+              name="gameUrl"
               class="form-input input-prefixed"
               placeholder="yourgame.itch.io"
               bind:value={url}
@@ -205,7 +209,7 @@
       </form>
     </div>
 
-    <!-- RIGHT: THUMBNAIL -->
+    <!-- RIGHT: THUMBNAIL + VIDEO -->
     <div class="thumb-panel">
       <div class="panel-corner tl"></div>
       <div class="panel-corner br"></div>
@@ -252,42 +256,43 @@
           <li>Upload content must not contain sensitive or offensive information of any kind</li>
         </ul>
       </div>
-      <div class="video-section">
-      <div class="panel-eyebrow" style="margin-top: 28px;">// GAMEPLAY VIDEO</div>
-      <div class="video-drop" class:has-video={!!video}>
-        {#if video}
-          <div class="video-name">
-            <span class="video-icon">▶</span>
-            <span>{videoPreview}</span>
-          </div>
-          <button class="video-clear" onclick={() => { video = null; videoPreview = null; }}>✕ REMOVE</button>
-        {:else}
-          <div class="dropzone-content">
-            <div class="drop-icon">▶</div>
-            <div class="drop-label">GAMEPLAY VIDEO</div>
-            <div class="drop-sub">or click to browse</div>
-            <div class="drop-hint">MP4, WEBM · Max 50MB</div>
-          </div>
-        {/if}
-        <label for="video-input" class="dropzone-label" aria-label="Upload video"></label>
-        <input
-          id="video-input"
-          type="file"
-          accept="video/*"
-          class="file-input-hidden"
-          onchange={handleVideoChange}
-        />
-      </div>
-    </div>
-    </div>
 
+      <div class="video-section">
+        <div class="panel-eyebrow" style="margin-top: 28px;">// GAMEPLAY VIDEO</div>
+        <div class="video-drop" class:has-video={!!video}>
+          {#if video}
+            <div class="video-name">
+              <span class="video-icon">▶</span>
+              <span>{videoPreview}</span>
+            </div>
+            <button class="video-clear" onclick={() => { video = null; videoPreview = null; }}>✕ REMOVE</button>
+          {:else}
+            <div class="dropzone-content">
+              <div class="drop-icon">▶</div>
+              <div class="drop-label">GAMEPLAY VIDEO</div>
+              <div class="drop-sub">or click to browse</div>
+              <div class="drop-hint">MP4, WEBM · Max 50MB</div>
+            </div>
+          {/if}
+          <label for="video-input" class="dropzone-label" aria-label="Upload video"></label>
+          <input
+            id="video-input"
+            type="file"
+            accept="video/*"
+            class="file-input-hidden"
+            onchange={handleVideoChange}
+          />
+        </div>
+      </div>
+
+    </div>
   </div>
 </main>
 
-<!-- FOOTER (replaces raw <footer> block) -->
+<!-- FOOTER -->
 <Footer {isAdmin} />
 
-<!-- LOGIN MODAL (replaces raw modal HTML) -->
+<!-- LOGIN MODAL -->
 <LoginModal open={showLogin} onClose={() => (showLogin = false)} />
 
 <style>
