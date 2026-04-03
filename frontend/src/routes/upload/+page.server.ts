@@ -11,8 +11,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
   default: async ({ request, fetch }) => {
-    // Forward the FormData directly to your Hono backend
     const formData = await request.formData();
+
+    console.log('[action] formData entries:');
+    for (const [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.size}b)` : value);
+    }
 
     const res = await fetch(`${API_URL}/game-requests`, {
       method: 'POST',
@@ -20,19 +24,15 @@ export const actions: Actions = {
       credentials: 'include',
     });
 
+    console.log('[action] backend status:', res.status);
+
     const data = await res.json().catch(() => ({}));
+    console.log('[action] backend response:', data);
 
     if (!res.ok) {
-      return {
-        success: false,
-        message: data.message ?? 'Submission failed',
-      };
+      return { success: false, message: data.message ?? 'Submission failed' };
     }
 
-    return {
-      success: true,
-      message: data.message,
-      requestId: data.requestId,
-    };
+    return { success: true, message: data.message, requestId: data.requestId };
   },
 };
