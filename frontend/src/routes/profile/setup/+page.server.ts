@@ -1,7 +1,7 @@
 import { redirect, fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:9210";
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:9210';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const session = locals.session as
