@@ -1,35 +1,35 @@
-import { error } from '@sveltejs/kit';
+import { redirect, error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types.d.ts';
 
-const API = 'http://localhost:3000'; // replace with your backend base URL or env var
+const API = 'http://localhost:3000';
 
-export const load: PageServerLoad = async ({ params, fetch, locals }) => {
-  const res = await fetch(`${API}/games/${params.id}`);
-    console.log('status:', res.status);
-  console.log('game id:', params.id);
-  
-  if (res.status === 404) throw error(404, 'Game not found');
-  if (!res.ok) throw error(500, 'Failed to load game');
+export const load: PageServerLoad = async ({ params, request }) => {
+  let res: Response;
 
-  if (res.status === 404) throw error(404, 'Game not found');
-  if (!res.ok) throw error(500, 'Failed to load game');
-
-  const game = await res.json();
-
-  let userReaction: 'like' | 'dislike' | null = null;
-  let userSuperliked = false;
-
-  if (locals.session?.authenticated) {
-    const rRes = await fetch(`${API}/games/${params.id}/reaction`);
-    if (rRes.ok) {
-      const r = await rRes.json();
-      userReaction = r.reaction ?? null;
-      userSuperliked = r.superliked ?? false;
-    }
+  try {
+    res = await fetch(`${API}/games/${params.id}`, {
+      headers: {
+        cookie: request.headers.get('cookie') ?? '',
+      },
+    });
+  } catch (e) {
+    console.error('[game load] fetch failed:', e);
+    throw error(502, 'Could not reach game server');
   }
-  return { game, userReaction, userSuperliked };
-  
+
+  if (!res.ok) {
+    console.error('[game load] bad response:', res.status, await res.text());
+    throw error(res.status, 'Game not found');
+  }
+
+  const json = await res.json();
+  const gameUrl = json?.game?.gameUrl ?? json?.gameUrl;
+
+  console.log('[game load] gameUrl:', gameUrl);
+
+  if (!gameUrl) {
+    throw error(404, 'Game URL not available');
+  }
+
+  throw redirect(302, gameUrl);
 };
-
-
-
