@@ -103,7 +103,9 @@
     {#if isLoggedIn}
       <div class="nav-user">
         {#if avatarUrl}
-          <img class="nav-avatar" src={avatarUrl} alt={userName} referrerpolicy="no-referrer" />
+            <a href="/profile" class="nav-avatar-link">
+              <img class="nav-avatar" src={avatarUrl} alt={userName} referrerpolicy="no-referrer" />
+            </a>
         {/if}
         <button class="nav-cta nav-cta--out" onclick={handleSignOut}>LOG OUT</button>
       </div>
@@ -151,4 +153,5 @@
   
     .nav-user  { display:flex; align-items:center; gap:10px; flex-shrink:0; }
     .nav-avatar { width:28px; height:28px; border-radius:50%; border:1px solid rgba(0,255,249,.3); object-fit:cover; }
+    .nav-avatar-link { display: flex; align-items: center; }
   </style>
