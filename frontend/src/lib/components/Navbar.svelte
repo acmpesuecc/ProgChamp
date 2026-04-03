@@ -135,8 +135,9 @@
     </form>
   
     <ul class="nav-links">
-      <li><a href="/all-games" class="nav-link">ALL GAMES</a></li>
-
+        <li>
+          <button class="nav-link" onclick={goAllGames}>ALL GAMES</button>
+        </li>
       <li>
         <button class="nav-link" onclick={() => handleNav('/my-games', true)}>
           MY GAMES
@@ -148,6 +149,13 @@
           UPLOAD
         </button>
       </li>
+      {#if isAdmin}
+          <li>
+            <button class="nav-link nav-link--admin" onclick={goAdmin}>
+              ADMIN
+            </button>
+          </li>
+        {/if}
     </ul>
 
   
