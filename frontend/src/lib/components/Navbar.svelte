@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { goto } from '$app/navigation';
+    import { goto,invalidateAll } from '$app/navigation';
   
     interface Props {
       isLoggedIn?: boolean;
@@ -29,12 +29,13 @@
     }
   
     async function handleSignOut() {
-      await fetch('http://localhost:9210/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      window.location.href = '/';
-    }
+  await fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:9210'}/auth/logout`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  await invalidateAll();
+  window.location.href = '/';
+}
   
     // Custom cursor — lives here so it's registered once per page.
     onMount(() => {
