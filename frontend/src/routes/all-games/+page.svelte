@@ -1,6 +1,9 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
   import { page } from '$app/state';
+  import { onDestroy } from 'svelte';
+  import { globalSearch } from '$lib/stores/search';
   import UploadCTA from '$lib/components/UploadCTA.svelte';
   import Navbar     from '$lib/components/Navbar.svelte';
   import Footer     from '$lib/components/Footer.svelte';
@@ -59,9 +62,42 @@
   }
 
   // FILTER / SEARCH STATE
-  let searchQuery = $state('');
-  let activeGenre = $state('All');
-  let sortBy      = $state('newest');
+    let searchQuery = $state(page.url.searchParams.get('q') ?? '');
+    let activeGenre = $state('All');
+    let sortBy      = $state('newest');
+  
+    function scrollToGames() {
+      const el = document.querySelector('.filters-bar') as HTMLElement | null;
+      if (!el) return;
+      const navHeight = (document.querySelector('nav') as HTMLElement | null)?.offsetHeight ?? 80;
+      const top = el.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  
+    onMount(() => {
+      // Sync store → page only after mount (client-only, avoids SSR 500)
+      globalSearch.set(searchQuery);
+  
+      // If we arrived with a ?q= param (e.g. navigated from another page), scroll down
+      if (searchQuery) {
+        // Small tick to let the page render first
+        setTimeout(scrollToGames, 50);
+      }
+  
+      // Subscribe to navbar searches while on this page
+      const unsubscribe = globalSearch.subscribe(val => {
+        if (val !== searchQuery) {
+          searchQuery = val;
+          if (val) scrollToGames();
+        }
+      });
+  
+      return unsubscribe;
+    });
+  
+    onDestroy(() => {
+      globalSearch.set('');
+    });
 
   const genres = ['All', 'Action RPG', 'Shooter', 'Racing', 'Strategy', 'Arcade', 'Space Sim', 'Survival', 'Horror', 'Fighting', 'Puzzle'];
 
@@ -85,6 +121,10 @@
 
   const iconColors = ['#bf00ff','#00ccff','#ff3300','#00cc44','#ffee00','#ff0066'];
   const icons      = ['⬡','◈','⟁','✦','◉','⟡'];
+  
+  onDestroy(() => {
+    globalSearch.set('');
+  });
 </script>
 
 <svelte:head>
@@ -116,7 +156,16 @@
 <div class="filters-bar">
   <div class="search-wrap">
     <span class="search-icon">⌕</span>
-    <input class="search-input" type="text" placeholder="SEARCH GAMES OR DEVS..." bind:value={searchQuery} />
+    <input 
+      class="search-input" 
+      type="text" 
+      placeholder="SEARCH GAMES OR DEVS..." 
+      value={searchQuery}
+      oninput={(e) => {
+        searchQuery = (e.target as HTMLInputElement).value;
+        globalSearch.set(searchQuery);
+      }}
+    />
   </div>
   <select class="filter-select" bind:value={sortBy}>
     <option value="newest">NEWEST FIRST</option>

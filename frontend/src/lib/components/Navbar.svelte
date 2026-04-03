@@ -1,6 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { page } from '$app/state';
     import { goto,invalidateAll } from '$app/navigation';
+    import { globalSearch } from '$lib/stores/search';
   
     interface Props {
       isLoggedIn?: boolean;
@@ -23,9 +25,32 @@
     let dotEl       = $state<HTMLDivElement | null>(null);
   
     function handleSearch(e: SubmitEvent) {
-      e.preventDefault();
-      const q = searchQuery.trim();
-      if (q) goto(`/all-games?q=${encodeURIComponent(q)}`);
+        e.preventDefault();
+        const q = searchQuery.trim();
+        if (!q) return;
+    
+        if (page.url.pathname === '/all-games') {
+          globalSearch.set(q);
+          searchQuery = '';  // clears the navbar input after search
+        } else {
+          goto(`/all-games?q=${encodeURIComponent(q)}`);
+        }
+      }
+    
+    function handleInput(e: Event) {
+        const q = (e.target as HTMLInputElement).value;
+        searchQuery = q;
+    
+        if (page.url.pathname === '/all-games') {
+          // Already on all-games — update store directly, no navigation
+          globalSearch.set(q);
+        }
+      }
+      
+
+    function goToAllGames() {
+      globalSearch.set('');
+      goto('/all-games');
     }
   
     async function handleSignOut() {
@@ -66,6 +91,14 @@
   
       return () => document.removeEventListener('mousemove', onMove);
     });
+    
+    function goHome() { goto('/'); }
+    function goAllGames() { globalSearch.set(''); goto('/all-games'); }
+    function goMyGames() { goto('/my-games'); }
+    function goUpload() { goto('/upload'); }
+    function goAdmin() { goto('/admin'); }
+    function goProfile() { goto('/profile'); }
+
   </script>
   
   <!-- Custom cursor (rendered once, globally) -->
@@ -77,37 +110,39 @@
   <div class="noise"></div>
   
   <nav>
-    <a href="/" class="logo-wrap">
+    <button class="logo-wrap" onclick={goHome}>
       <span class="logo">PROG<em>CHAMP</em></span>
       <span class="logo-sub">an @ACMpesuecc project</span>
-    </a>
+    </button>
   
     <form class="nav-search" onsubmit={handleSearch}>
       <input
         class="nav-search-input"
         type="text"
         placeholder="SEARCH GAMES..."
-        bind:value={searchQuery}
+        value={searchQuery}
+        oninput={handleInput}
       />
       <button type="submit" class="nav-search-btn" aria-label="Search">⌕</button>
     </form>
   
     <ul class="nav-links">
-      <li><a href="/all-games"    class="nav-link">ALL GAMES</a></li>
-      <li><a href="/my-games" class="nav-link">MY GAMES</a></li>
-      <li><a href="/upload"   class="nav-link">UPLOAD</a></li>
+      <li><button class="nav-link" onclick={goAllGames}>ALL GAMES</button></li>
+      <li><button class="nav-link" onclick={goMyGames}>MY GAMES</button></li>
+      <li><button class="nav-link" onclick={goUpload}>UPLOAD</button></li>
       {#if isAdmin}
-        <li><a href="/admin" class="nav-link nav-link--admin">ADMIN</a></li>
+        <li><button class="nav-link nav-link--admin" onclick={goAdmin}>ADMIN</button></li>
       {/if}
     </ul>
+
   
     {#if isLoggedIn}
       <div class="nav-user">
-        {#if avatarUrl}
-            <a href="/profile" class="nav-avatar-link">
+          {#if avatarUrl}
+            <button class="nav-avatar-btn" onclick={goProfile}>
               <img class="nav-avatar" src={avatarUrl} alt={userName} referrerpolicy="no-referrer" />
-            </a>
-        {/if}
+            </button>
+          {/if}
         <button class="nav-cta nav-cta--out" onclick={handleSignOut}>LOG OUT</button>
       </div>
     {:else}
@@ -154,5 +189,7 @@
   
     .nav-user  { display:flex; align-items:center; gap:10px; flex-shrink:0; }
     .nav-avatar { width:28px; height:28px; border-radius:50%; border:1px solid rgba(0,255,249,.3); object-fit:cover; }
-    .nav-avatar-link { display: flex; align-items: center; }
+    .logo-wrap { background: none; border: none; padding: 0; cursor: none; }
+    button.nav-link { background: none; border: none; padding: 0; cursor: none; }
+    .nav-avatar-btn { background: none; border: none; padding: 0; cursor: none; display: flex; align-items: center; }
   </style>
