@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-
   "configVersion": 1,
   "workspaces": {
     "": {
@@ -9,17 +8,11 @@
         "@auth/sveltekit": "^1.11.1",
       },
       "devDependencies": {
-        "hono-rate-limiter": "^0.5.3",
         "@types/node": "^25.0.9",
-
       },
     },
   },
   "packages": {
-    "hono": ["hono@4.12.7", "", {}, "sha512-jq9l1DM0zVIvsm3lv9Nw9nlJnMNPOcAtsbsgiUhWcFzPE99Gvo6yRTlszSLLYacMeQ6quHD6hMfId8crVHvexw=="],
-
-    "hono-rate-limiter": ["hono-rate-limiter@0.5.3", "", { "peerDependencies": { "hono": "^4.10.8", "unstorage": "^1.17.3" }, "optionalPeers": ["unstorage"] }, "sha512-M0DxbVMpPELEzLi0AJg1XyBHLGJXz7GySjsPoK+gc5YeeBsdGDGe+2RvVuCAv8ydINiwlbxqYMNxUEyYfRji/A=="],
-
     "@auth/core": ["@auth/core@0.41.1", "", { "dependencies": { "@panva/hkdf": "^1.2.1", "jose": "^6.0.6", "oauth4webapi": "^3.3.0", "preact": "10.24.3", "preact-render-to-string": "6.5.11" }, "peerDependencies": { "@simplewebauthn/browser": "^9.0.1", "@simplewebauthn/server": "^9.0.2", "nodemailer": "^7.0.7" }, "optionalPeers": ["@simplewebauthn/browser", "@simplewebauthn/server", "nodemailer"] }, "sha512-t9cJ2zNYAdWMacGRMT6+r4xr1uybIdmYa49calBPeTqwgAFPV/88ac9TEvCR85pvATiSPt8VaNf+Gt24JIT/uw=="],
 
     "@auth/sveltekit": ["@auth/sveltekit@1.11.1", "", { "dependencies": { "@auth/core": "0.41.1", "set-cookie-parser": "^2.7.0" }, "peerDependencies": { "@simplewebauthn/browser": "^9.0.1", "@simplewebauthn/server": "^9.0.3", "@sveltejs/kit": "^1.0.0 || ^2.0.0", "nodemailer": "^7.0.7", "svelte": "^3.54.0 || ^4.0.0 || ^5.0.0-0" }, "optionalPeers": ["@simplewebauthn/browser", "@simplewebauthn/server", "nodemailer"] }, "sha512-cWNfXcKrNIVtJYOY1tq7H7m03j89Wg7xrTvOJALu18fZdYulzYCPIAdTw8XSEzOp6KyhOGo7tmW7VtzRNtr/8Q=="],
