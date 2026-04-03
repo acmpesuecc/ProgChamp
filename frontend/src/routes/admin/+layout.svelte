@@ -45,6 +45,7 @@
     <a href="/admin/requests" class="nav-link">Game Requests</a>
     <a href="/admin/appeals" class="nav-link">Appeals</a>
     <a href="/admin/users" class="nav-link">Users</a>
+    <a href="/admin/games" class="nav-link">Games</a>
     </div>
 
   <div class="nav-badge">⚙ ADMIN PANEL</div>

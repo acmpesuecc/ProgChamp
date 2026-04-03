@@ -14,6 +14,79 @@ import { z } from "zod";
 
 const adminGameRequestRoutes = new Hono();
 
+adminGameRequestRoutes.get("/all-games", requireSession, requireAdmin, async (c) => {
+  const cursorParam = c.req.query("cursor");
+  const statusParam = c.req.query("status"); // "active" | "deactivated" | undefined = all
+  const pageSize = 20;
+
+  const conditions = [];
+
+  if (statusParam === "active") conditions.push(eq(games.isActive, true));
+  else if (statusParam === "deactivated") conditions.push(eq(games.isActive, false));
+
+  if (cursorParam) {
+    try {
+      const decoded = JSON.parse(atob(cursorParam));
+      const cursorDate = new Date(decoded.createdAt);
+      if (isNaN(cursorDate.getTime()) || !decoded.id) {
+        return c.json({ error: "Invalid cursor" }, 400);
+      }
+      const cursorCondition = or(
+        lt(games.createdAt, cursorDate),
+        and(eq(games.createdAt, cursorDate), lt(games.id, decoded.id)),
+      );
+      if (cursorCondition) conditions.push(cursorCondition);
+    } catch {
+      return c.json({ error: "Invalid cursor" }, 400);
+    }
+  }
+
+  const result = await db.query.games.findMany({
+    where: conditions.length ? and(...conditions) : undefined,
+    orderBy: (games, { desc }) => [desc(games.createdAt), desc(games.id)],
+    limit: pageSize + 1,
+    with: {
+      creator: { columns: { id: true, name: true, avatarUrl: true } },
+      tags: { with: { tag: true } },
+      coverMedia: true,
+    },
+  });
+
+  const hasNextPage = result.length > pageSize;
+  const page = hasNextPage ? result.slice(0, pageSize) : result;
+  const lastGame = page.at(-1);
+  const nextCursor = hasNextPage && lastGame
+    ? btoa(JSON.stringify({ createdAt: lastGame.createdAt, id: lastGame.id }))
+    : null;
+
+  return c.json({ games: page, nextCursor });
+});
+
+adminGameRequestRoutes.get("/game-detail/:id", requireSession, requireAdmin, async (c) => {
+  const gameId = c.req.param("id");
+  console.log("Fetching game:", gameId);
+
+  try {
+    const game = await db.query.games.findFirst({
+      where: eq(games.id, gameId),
+      with: {
+        coverMedia: true,
+        tags: { with: { tag: true } },
+        creator: { columns: { id: true, name: true, avatarUrl: true } },
+      },
+    });
+     console.log("Result:", game); 
+
+    if (!game) throw new NotFoundError("Game not found");
+
+    return c.json({ success: true, game });
+  } catch (error) {
+    if (error instanceof NotFoundError) return c.json({ error: error.message }, 404);
+    console.error("Get game by id error:", error);
+    return c.json({ error: "Failed to fetch game" }, 500);
+  }
+});
+
 // Retrieve all game requests
 adminGameRequestRoutes.get("/", requireSession, requireAdmin, async (c) => {
   const cursorParam = c.req.query("cursor");
@@ -265,6 +338,48 @@ adminGameRequestRoutes.post(
       return c.json({ error: "Unexpected error" }, 500);
     }
   },
+);
+
+// Admin reactivates a game
+adminGameRequestRoutes.post(
+  "/:id/reactivate",
+  requireSession,
+  requireAdmin,
+  async (c) => {
+    const admin = c.get("user");
+    const gameId = c.req.param("id");
+
+    try {
+      await db.transaction(async (tx) => {
+        const game = await tx.query.games.findFirst({
+          where: eq(games.id, gameId),
+        });
+
+        if (!game) throw new NotFoundError("Game not found");
+        if (game.isActive) throw new InvalidStateError("Game is already active");
+
+        await tx.update(games).set({
+          isActive: true,
+          deactivatedAt: null,
+          deactivationReason: null,
+        }).where(eq(games.id, gameId));
+
+        await tx.insert(adminActions).values({
+          id: `aa_${nanoid(16)}`,
+          adminId: admin.id,
+          actionType: "reactivate_game",
+          decision: "reactivated",
+          targetGameId: gameId,
+        });
+      });
+
+      return c.json({ success: true, message: "Game reactivated successfully" });
+    } catch (error) {
+      if (error instanceof NotFoundError) return c.json({ error: error.message }, 404);
+      if (error instanceof InvalidStateError) return c.json({ error: error.message }, 400);
+      return c.json({ error: "Unexpected error" }, 500);
+    }
+  }
 );
 
 export default adminGameRequestRoutes;
