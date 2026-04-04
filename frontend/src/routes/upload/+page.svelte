@@ -38,7 +38,8 @@
   let isSubmitting = $state(false);
   let submitted    = $state(false);
 
-  let dropzone = $state<HTMLElement | undefined>(undefined);
+ 
+  let errorMessage = $state<string | null>(null);
 
   const genres = ['Action RPG', 'Shooter', 'Racing', 'Strategy', 'Arcade', 'Space Sim', 'Survival', 'Horror', 'Fighting', 'Puzzle'];
 
@@ -124,14 +125,16 @@
           isSubmitting = true;
           return async ({ result, update }) => {
             isSubmitting = false;
+            errorMessage = null;
             if (result.type === 'success' && result.data?.success) {
               submitted = true;
               setTimeout(() => {
-                submitted    = false;
-                title        = description = url = genre = '';
-                thumbnail    = preview = null;
-                video        = videoPreview = null;
+                submitted = title = description = url = genre = '';
+                thumbnail = preview = null;
+                video = videoPreview = null;
               }, 3000);
+            } else if (result.type === 'success' && !result.data?.success) {
+              errorMessage = result.data?.message ?? 'Submission failed';
             }
             await update();
           };
@@ -199,6 +202,9 @@
             <span class="loading-dots">UPLOADING<span>.</span><span>.</span><span>.</span></span>
           {:else}
             SUBMIT GAME ↗
+          {/if}
+          {#if errorMessage}
+            <p class="error-note">{errorMessage}</p>
           {/if}
         </button>
 
@@ -452,4 +458,11 @@
   .video-icon{color:var(--neon-purple);text-shadow:0 0 8px var(--neon-purple);}
   .video-clear{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.15em;color:rgba(255,0,110,.6);border:1px solid rgba(255,0,110,.2);background:transparent;padding:6px 14px;cursor:none;transition:all .25s;clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);}
   .video-clear:hover{color:var(--neon-pink);border-color:var(--neon-pink);}
+  .error-note {
+    font-family: 'Share Tech Mono', monospace; font-size: .8rem; letter-spacing: .1em;
+    color: rgba(255, 80, 80, .8); text-align: center; line-height: 1.6;
+    border: 1px solid rgba(255, 80, 80, .2); padding: 10px 16px;
+    background: rgba(255, 0, 0, .04);
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  }
 </style>
