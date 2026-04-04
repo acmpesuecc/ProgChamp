@@ -8,13 +8,19 @@
   const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:9210';
 
   async function reviewAppeal(action: 'approve' | 'reject') {
-    loading = action;
-    await fetch(`${API_URL}/admin/appeals/${appeal.id}/${action}`, {
+    const res = await fetch(`${API_URL}/admin/appeals/${appeal.id}/${action}`, {
       method: 'POST',
       credentials: 'include',
     });
-    loading = null;
-    goto('/admin/appeals');
+
+    if (res.ok) {
+      // Success: Go back to the list
+      goto('/admin/appeals');
+    } else {
+      // Failure: Show the error from the backend
+      const data = await res.json();
+      alert(`Error: ${data.error || 'Could not process appeal'}`);
+    }
   }
 
   function formatDate(date: string | null) {

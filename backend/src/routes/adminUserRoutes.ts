@@ -107,12 +107,25 @@ adminUserRoutes.post("/:id/approve", requireSession, requireAdmin, async (c) => 
       if (!appeal) throw new NotFoundError("Appeal not found");
       if (appeal.status !== "pending") throw new InvalidStateError("Appeal is not pending");
 
+      // 1. Update the appeal status to approved
       await tx.update(userRequests).set({
         status: "approved",
         reviewedBy: admin.id,
         reviewedAt: new Date(),
       }).where(eq(userRequests.id, appealId));
 
+      // 2. ADD THIS: If it's an unban appeal, actually unban the user
+      if (appeal.requestType === 'user_unban_appeal') {
+        await tx.update(users)
+          .set({ 
+              isActive: true, 
+              deactivatedAt: null, 
+              deactivatedBy: null 
+          })
+          .where(eq(users.id, appeal.submitterId));
+      }
+
+      // 3. Log the admin action
       await tx.insert(adminActions).values({
         id: `aa_${nanoid(16)}`,
         adminId: admin.id,
@@ -124,10 +137,7 @@ adminUserRoutes.post("/:id/approve", requireSession, requireAdmin, async (c) => 
 
     return c.json({ success: true, message: "Appeal approved successfully" });
   } catch (error) {
-    if (error instanceof NotFoundError) return c.json({ error: error.message }, 404);
-    if (error instanceof InvalidStateError) return c.json({ error: error.message }, 400);
-    console.error("Approve appeal error:", error);
-    return c.json({ error: "Failed to approve appeal" }, 500);
+    // ... existing catch block ...
   }
 });
 

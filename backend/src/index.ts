@@ -37,6 +37,8 @@ app.route("/tags", tagsRoute);
 app.route("/games", gamesRoute);
 app.route("/admin", adminUserRoutes)
 app.route("/admin", adminRoutes);
+app.route('/admin/users', adminUserRoutes); 
+app.route('/admin/appeals', adminUserRoutes);
 
 
 export default app;

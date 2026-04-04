@@ -1,10 +1,10 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
 
   let { data } = $props();
 
-  let users = $derived(data.users ?? []);
+  let users = $derived(page.data.users);
   let nextCursor = $derived(data.nextCursor ?? null);
   let isActive = $derived(data.isActive ?? 'true');
   let loading = $state<string | null>(null);

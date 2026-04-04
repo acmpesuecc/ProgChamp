@@ -148,6 +148,13 @@
           UPLOAD
         </button>
       </li>
+      {#if isAdmin}
+          <li>
+            <button class="nav-link nav-link--admin" onclick={goAdmin}>
+              ADMIN
+            </button>
+          </li>
+        {/if}
     </ul>
 
   
