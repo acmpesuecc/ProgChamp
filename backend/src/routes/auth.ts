@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { setCookie, deleteCookie, getCookie } from "hono/cookie";
 import { db } from "../db/index";
-import { users } from "../db/schema";
+import { users, sessions } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import {
@@ -225,6 +225,8 @@ auth.get("/google/callback", async (c) => {
 
     // Create session
     const SESSION_DURATION_DAYS = 7;
+    // Delete all existing sessions for this user before creating a new one
+    await db.delete(sessions).where(eq(sessions.userId, user.id));
     const session = await createSession(user.id, SESSION_DURATION_DAYS);
 
     // Derive cookie maxAge from the session's own expiresAt so the two

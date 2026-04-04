@@ -1,7 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:9210';
-
+const API_URL = process.env.VITE_API_URL ?? 'http://localhost:9210';
 export async function load({ fetch, request }) {
   const headers = { cookie: request.headers.get('cookie') ?? '' };
 
@@ -17,8 +16,10 @@ export async function load({ fetch, request }) {
     fetch(`${API_URL}/admin/game-requests?status=pending&limit=5`,    { headers }),
     fetch(`${API_URL}/admin/users?limit=5&sort=createdAt&order=desc`, { headers }),
   ]);
-
-  const stats            = statsRes.ok    ? await statsRes.json()    : { totalGames: 0, totalUsers: 0, pendingCount: 0, onlineNow: 0 };
+  
+  const statsText = await statsRes.text();
+  console.log('stats status:', statsRes.status, statsText);   // <-- add this
+  const stats = statsRes.ok ? JSON.parse(statsText) : { totalGames: 0, totalUsers: 0, pendingCount: 0, onlineNow: 0 };
   const { requests = [] } = requestsRes.ok ? await requestsRes.json() : {};
   const { users = [] }    = usersRes.ok    ? await usersRes.json()    : {};
 
