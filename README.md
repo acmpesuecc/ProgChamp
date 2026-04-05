@@ -11,11 +11,11 @@ _This project is part of ACMPESUECC - AIEP'26._
 -  [Mebin Thattil](https://github.com/mebinthattil)
 
 **Mentees:**
-- [Archita Agrawal]()
+- [Archita Agrawal](https://github.com/architaagr)
 - [Pratham Mudakavi](https://github.com/Pratham042006)
 - [Poornaprajna Kashyap](https://github.com/leatfingies)
 - [Syed Ayaan Hasan](https://github.com/ayaanGH06)
-- [Sannidhi Nayak](https://github.com/thisisSandy06)
+- [Sannidhi Nayak](https://github.com/Thisissandy07)
 
 <hr>
 
