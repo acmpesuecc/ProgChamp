@@ -1,4 +1,4 @@
-import { redirect, error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types.d.ts';
 
 const API = 'http://localhost:3000';
@@ -17,19 +17,21 @@ export const load: PageServerLoad = async ({ params, request }) => {
     throw error(502, 'Could not reach game server');
   }
 
+  if (res.status === 404) {
+    throw error(404, 'Game not found');
+  }
+
   if (!res.ok) {
     console.error('[game load] bad response:', res.status, await res.text());
-    throw error(res.status, 'Game not found');
+    throw error(res.status, 'Failed to load game');
   }
 
   const json = await res.json();
-  const gameUrl = json?.game?.gameUrl ?? json?.gameUrl;
+  const game = json?.game;
 
-  console.log('[game load] gameUrl:', gameUrl);
-
-  if (!gameUrl) {
-    throw error(404, 'Game URL not available');
+  if (!game) {
+    throw error(404, 'Game not found');
   }
 
-  throw redirect(302, gameUrl);
+  return { game };
 };
