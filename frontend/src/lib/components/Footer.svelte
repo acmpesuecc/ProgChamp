@@ -40,7 +40,7 @@
     <div>
       <div class="footer-col-title">ProgChamp</div>
       <ul class="footer-links">
-        <li><a href="#">About ACMpesuecc</a></li>
+        <li><a href="https://acmpesuecc.github.io/" target="_blank" rel="noopener noreferrer">About ACMpesuecc</a></li>
       </ul>
     </div>
   

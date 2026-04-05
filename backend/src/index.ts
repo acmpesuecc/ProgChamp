@@ -8,6 +8,9 @@ import userRequests from "./routes/userRequests";
 import adminGameRequests from "./routes/adminGameRoutes";
 import tagsRoute from './routes/tags';
 import reactions from "./routes/reactions";
+import gamesRoute from "./routes/game";
+import adminUserRoutes from "./routes/adminUserRoutes";
+import adminRoutes from "./routes/admin";
 
 const app = new Hono();
 
@@ -15,7 +18,7 @@ const app = new Hono();
 app.use(
   "/*",
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization", "X-User-Id"],
@@ -31,6 +34,10 @@ app.route("/user-requests", userRequests); // Accessible at /user-requests
 app.route("/admin/game-requests", adminGameRequests); // Accessible at /admin/game-requests
 app.route("/games", reactions)
 app.route("/tags", tagsRoute);
+app.route("/games", gamesRoute);
+
+app.route('/admin/appeals', adminUserRoutes);
+app.route("/admin", adminRoutes); 
 
 
 export default app;

@@ -13,8 +13,8 @@
   // ── Page data (from server load function) ──────────────────
   let { data } = $props();
 
-  let isLoggedIn  = $derived(data.session?.authenticated ?? false);
-  let isAdmin     = $derived(data.user?.userType === 'admin');
+  let isLoggedIn = $derived(data.session?.authenticated ?? false);
+  let isAdmin    = $derived(data.session?.user?.userType === 'admin');
   let games       = $derived(data.games       ?? []);
   let categories  = $derived(data.categories  ?? []);
 
@@ -40,8 +40,8 @@
 <Navbar
   {isLoggedIn}
   {isAdmin}
-  avatarUrl={data.user?.avatarUrl}
-  userName={data.user?.name}
+  avatarUrl={data.session?.user?.avatarUrl}
+  userName={data.session?.user?.name}
   onLoginClick={() => (showLogin = true)}
 />
 

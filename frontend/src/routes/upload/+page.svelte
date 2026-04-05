@@ -1,8 +1,8 @@
 <script lang="ts">
-  
+
+  import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { submissions } from '../../lib/stores/submissions';
 
   import Navbar     from '$lib/components/Navbar.svelte';
   import Footer     from '$lib/components/Footer.svelte';
@@ -17,6 +17,10 @@
 
   // LOGIN MODAL STATE
   let showLogin = $state(false);
+
+  // GAME MEDIA
+  let video        = $state<File | null>(null);
+  let videoPreview = $state<string | null>(null);
 
   function goTo(path: string, requiresAuth = false) {
     if (requiresAuth && !isLoggedIn) showLogin = true;
@@ -34,7 +38,8 @@
   let isSubmitting = $state(false);
   let submitted    = $state(false);
 
-  let dropzone = $state<HTMLElement | undefined>(undefined);
+ 
+  let errorMessage = $state<string | null>(null);
 
   const genres = ['Action RPG', 'Shooter', 'Racing', 'Strategy', 'Arcade', 'Space Sim', 'Survival', 'Horror', 'Fighting', 'Puzzle'];
 
@@ -60,36 +65,12 @@
   function handleDragOver(e: DragEvent) { e.preventDefault(); isDragging = true; }
   function handleDragLeave() { isDragging = false; }
 
-  // SUBMIT
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    if (!title || !description || !url || !thumbnail) return;
-    isSubmitting = true;
-
-    await new Promise(r => setTimeout(r, 1400));
-
-    submissions.update(list => [
-      ...list,
-      {
-        id:          crypto.randomUUID(),
-        title,
-        description,
-        url,
-        genre,
-        thumbnail,
-        status:      'pending',
-        dev:         user?.name ?? 'Anonymous',
-      }
-    ]);
-
-    isSubmitting = false;
-    submitted    = true;
-
-    setTimeout(() => {
-      submitted   = false;
-      title       = description = url = genre = '';
-      thumbnail   = preview = null;
-    }, 3000);
+  function handleVideoChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !file.type.startsWith('video/')) return;
+    video = file;
+    videoPreview = file.name;
   }
 </script>
 
@@ -98,7 +79,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Oxanium:wght@300;400;600;800&display=swap" rel="stylesheet" />
 </svelte:head>
 
-<!-- NAV (replaces cursor divs + grid-bg + noise + raw <nav>) -->
+<!-- NAV -->
 <Navbar
   {isLoggedIn}
   {isAdmin}
@@ -128,13 +109,43 @@
       <div class="panel-corner br"></div>
       <div class="panel-eyebrow">// GAME DETAILS</div>
 
-      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-      <form onsubmit={handleSubmit} class="upload-form">
+      <form
+        method="POST"
+        enctype="multipart/form-data"
+        class="upload-form"
+        use:enhance={({ formData }) => {
+          if (genre) formData.append('genre', genre);
+          // Prepend https:// to url if not already present
+          const rawUrl = formData.get('gameUrl') as string;
+          if (rawUrl && !rawUrl.startsWith('http')) {
+            formData.set('gameUrl', `https://${rawUrl}`);
+          }
+          if (thumbnail) formData.set('thumbnail', thumbnail);
+          if (video) formData.set('video', video);
+          isSubmitting = true;
+          return async ({ result, update }) => {
+            isSubmitting = false;
+            errorMessage = null;
+            if (result.type === 'success' && result.data?.success) {
+              submitted = true;
+              setTimeout(() => {
+                submitted = title = description = url = genre = '';
+                thumbnail = preview = null;
+                video = videoPreview = null;
+              }, 3000);
+            } else if (result.type === 'success' && !result.data?.success) {
+              errorMessage = result.data?.message ?? 'Submission failed';
+            }
+            await update();
+          };
+        }}
+      >
 
         <div class="form-group">
           <label class="form-label" for="title">GAME TITLE</label>
           <input
             id="title"
+            name="title"
             class="form-input"
             placeholder="e.g. VOID SYNDICATE"
             bind:value={title}
@@ -156,6 +167,7 @@
           <label class="form-label" for="description">DESCRIPTION</label>
           <textarea
             id="description"
+            name="description"
             class="form-input form-textarea"
             placeholder="Describe your game — genre, mechanics, what makes it worth playing..."
             bind:value={description}
@@ -170,6 +182,7 @@
             <span class="input-prefix">https://</span>
             <input
               id="url"
+              name="gameUrl"
               class="form-input input-prefixed"
               placeholder="yourgame.itch.io"
               bind:value={url}
@@ -181,7 +194,7 @@
         <button
           type="submit"
           class="btn-submit"
-          disabled={isSubmitting || submitted || !title || !description || !url || !thumbnail}
+          disabled={isSubmitting || submitted || !title || !description || !url}
         >
           {#if submitted}
             <span class="success-text">✓ SUBMITTED FOR REVIEW</span>
@@ -189,6 +202,9 @@
             <span class="loading-dots">UPLOADING<span>.</span><span>.</span><span>.</span></span>
           {:else}
             SUBMIT GAME ↗
+          {/if}
+          {#if errorMessage}
+            <p class="error-note">{errorMessage}</p>
           {/if}
         </button>
 
@@ -199,7 +215,7 @@
       </form>
     </div>
 
-    <!-- RIGHT: THUMBNAIL -->
+    <!-- RIGHT: THUMBNAIL + VIDEO -->
     <div class="thumb-panel">
       <div class="panel-corner tl"></div>
       <div class="panel-corner br"></div>
@@ -246,15 +262,43 @@
           <li>Upload content must not contain sensitive or offensive information of any kind</li>
         </ul>
       </div>
-    </div>
 
+      <div class="video-section">
+        <div class="panel-eyebrow" style="margin-top: 28px;">// GAMEPLAY VIDEO</div>
+        <div class="video-drop" class:has-video={!!video}>
+          {#if video}
+            <div class="video-name">
+              <span class="video-icon">▶</span>
+              <span>{videoPreview}</span>
+            </div>
+            <button class="video-clear" onclick={() => { video = null; videoPreview = null; }}>✕ REMOVE</button>
+          {:else}
+            <div class="dropzone-content">
+              <div class="drop-icon">▶</div>
+              <div class="drop-label">GAMEPLAY VIDEO</div>
+              <div class="drop-sub">or click to browse</div>
+              <div class="drop-hint">MP4, WEBM · Max 50MB</div>
+            </div>
+          {/if}
+          <label for="video-input" class="dropzone-label" aria-label="Upload video"></label>
+          <input
+            id="video-input"
+            type="file"
+            accept="video/*"
+            class="file-input-hidden"
+            onchange={handleVideoChange}
+          />
+        </div>
+      </div>
+
+    </div>
   </div>
 </main>
 
-<!-- FOOTER (replaces raw <footer> block) -->
+<!-- FOOTER -->
 <Footer {isAdmin} />
 
-<!-- LOGIN MODAL (replaces raw modal HTML) -->
+<!-- LOGIN MODAL -->
 <LoginModal open={showLogin} onClose={() => (showLogin = false)} />
 
 <style>
@@ -407,4 +451,18 @@
   .loading-dots span:nth-child(2) { animation-delay: .2s; }
   .loading-dots span:nth-child(3) { animation-delay: .4s; }
   @keyframes dotBlink { 0%,80%,100% { opacity:0 } 40% { opacity:1 } }
+  .video-drop{position:relative;border:1px dashed rgba(191,0,255,.25);min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:border-color .3s,background .3s;cursor:none;overflow:hidden;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);}
+  .video-drop:hover{border-color:rgba(191,0,255,.5);}
+  .video-drop.has-video{border-style:solid;border-color:rgba(191,0,255,.3);background:rgba(191,0,255,.03);}
+  .video-name{display:flex;align-items:center;gap:10px;font-family:'Share Tech Mono',monospace;font-size:.75rem;letter-spacing:.08em;color:rgba(224,224,255,.6);padding:0 20px;text-align:center;}
+  .video-icon{color:var(--neon-purple);text-shadow:0 0 8px var(--neon-purple);}
+  .video-clear{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.15em;color:rgba(255,0,110,.6);border:1px solid rgba(255,0,110,.2);background:transparent;padding:6px 14px;cursor:none;transition:all .25s;clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);}
+  .video-clear:hover{color:var(--neon-pink);border-color:var(--neon-pink);}
+  .error-note {
+    font-family: 'Share Tech Mono', monospace; font-size: .8rem; letter-spacing: .1em;
+    color: rgba(255, 80, 80, .8); text-align: center; line-height: 1.6;
+    border: 1px solid rgba(255, 80, 80, .2); padding: 10px 16px;
+    background: rgba(255, 0, 0, .04);
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  }
 </style>
