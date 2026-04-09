@@ -2,10 +2,10 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import auth from "./routes/auth";
 import profile from "./routes/profile";
+import superlikes from "./routes/superlikes";
 
 const app = new Hono();
 
-// remove *
 app.use(
   "/*",
   cors({
@@ -19,6 +19,7 @@ app.use(
 app.get("/", (c) => c.text("OK"));
 app.route("/auth", auth);
 app.route("/profile", profile);
+app.route("/superlikes", superlikes);
 
 export default app;
 
