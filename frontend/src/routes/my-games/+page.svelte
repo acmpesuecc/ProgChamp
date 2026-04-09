@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { submissions } from '../../lib/stores/submissions';
 
   import Navbar     from '$lib/components/Navbar.svelte';
   import Footer     from '$lib/components/Footer.svelte';
@@ -12,6 +11,7 @@
   let user       = $derived(session?.user);
   let isLoggedIn = $derived(session?.authenticated ?? false);
   let isAdmin    = $derived(user?.userType === 'admin');
+  let { data } = $props();
 
   // LOGIN MODAL STATE
   let showLogin = $state(false);
@@ -21,16 +21,44 @@
     else goto(path);
   }
 
-  // MY GAMES
-  let myGames  = $derived($submissions.filter((s: any) => s.dev === (user?.name ?? '')));
-  let pending  = $derived(myGames.filter((s: any) => s.status === 'pending'));
-  let approved = $derived(myGames.filter((s: any) => s.status === 'approved'));
-  let rejected = $derived(myGames.filter((s: any) => s.status === 'rejected'));
+  // REQUESTS STATE
+  let requests   = $state(data.requests ?? []);
+  let nextCursor = $state(data.nextCursor ?? null);
+  let loading    = $state(false);
 
-
-  function thumbUrl(s: any) {
-    return s.thumbnail ? URL.createObjectURL(s.thumbnail) : null;
+  async function loadMore() {
+    if (!nextCursor || loading) return;
+    loading = true;
+    try {
+      const res = await fetch(`/api/game-requests/my?limit=20&cursor=${encodeURIComponent(nextCursor)}`);
+      if (res.ok) {
+        const d = await res.json();
+        requests   = [...requests, ...(d.requests ?? [])];
+        nextCursor = d.nextCursor ?? null;
+      }
+    } finally {
+      loading = false;
+    }
   }
+
+  // map backend request to display shape
+  function mapRequest(r: any) {
+    return {
+      id:              r.id,
+      title:           r.title,
+      description:     r.description ?? '',
+      genre:           r.tags?.[0]?.tag?.category ?? r.tags?.[0]?.tag?.name ?? 'Uncategorised',
+      url:             r.gameUrl,
+      status:          r.status,
+      adminResponse:   r.adminResponse ?? null,
+      thumbnail:       null, // R2 signed URLs not wired yet
+    };
+  }
+
+  let mappedRequests = $derived(requests.map(mapRequest));
+  let pending        = $derived(mappedRequests.filter((r: any) => r.status === 'pending'));
+  let approved       = $derived(mappedRequests.filter((r: any) => r.status === 'approved'));
+  let rejected       = $derived(mappedRequests.filter((r: any) => r.status === 'rejected'));
 
   const statusConfig: Record<string, { label: string; color: string; glow: string; icon: string; border: string; bg: string }> = {
     pending:  { label: 'AWAITING REVIEW', color: 'var(--neon-yellow)', glow: 'rgba(255,230,0,.3)',  icon: '◌', border: 'rgba(255,230,0,.25)',  bg: 'rgba(255,230,0,.04)' },
@@ -62,7 +90,7 @@
     <h1 class="header-title">MY <span>GAMES</span></h1>
     <p class="header-sub">
       {#if isLoggedIn}
-        {myGames.length} submission{myGames.length !== 1 ? 's' : ''} · {approved.length} live · {pending.length} under review
+        {mappedRequests.length} submission{mappedRequests.length !== 1 ? 's' : ''} · {approved.length} live · {pending.length} under review
       {:else}
         Log in to view your submitted games.
       {/if}
@@ -80,7 +108,7 @@
       <button class="btn-cta" onclick={() => showLogin = true}>LOGIN TO CONTINUE</button>
     </div>
 
-  {:else if myGames.length === 0}
+  {:else if mappedRequests.length === 0}
     <div class="empty-state">
       <div class="empty-icon">◌</div>
       <div class="empty-title">NO SUBMISSIONS YET</div>
@@ -101,8 +129,8 @@
             {@const cfg = statusConfig.pending}
             <div class="game-card" style="border-color:{cfg.border};background:{cfg.bg}">
               <div class="card-thumb">
-                {#if thumbUrl(s)}
-                  <img src={thumbUrl(s)} alt={s.title} class="thumb-img" />
+                {#if s.thumbUrl}
+                  <img src={s.thumbUrl} alt={s.title} class="thumb-img" />
                 {:else}
                   <div class="thumb-placeholder"><span class="thumb-icon">◌</span></div>
                 {/if}
@@ -135,8 +163,8 @@
             {@const cfg = statusConfig.approved}
             <div class="game-card" style="border-color:{cfg.border};background:{cfg.bg}">
               <div class="card-thumb">
-                {#if thumbUrl(s)}
-                  <img src={thumbUrl(s)} alt={s.title} class="thumb-img" />
+                {#if s.thumbUrl}
+                  <img src={s.thumbUrl} alt={s.title} class="thumb-img" />
                 {:else}
                   <div class="thumb-placeholder"><span class="thumb-icon" style="color:var(--neon-cyan)">◉</span></div>
                 {/if}
@@ -170,8 +198,8 @@
             {@const cfg = statusConfig.rejected}
             <div class="game-card" style="border-color:{cfg.border};background:{cfg.bg}">
               <div class="card-thumb">
-                {#if thumbUrl(s)}
-                  <img src={thumbUrl(s)} alt={s.title} class="thumb-img" />
+                {#if s.thumbUrl}
+                  <img src={s.thumbUrl} alt={s.title} class="thumb-img" />
                 {:else}
                   <div class="thumb-placeholder"><span class="thumb-icon" style="color:var(--neon-pink)">✕</span></div>
                 {/if}
@@ -184,7 +212,7 @@
                 <div class="card-title">{s.title}</div>
                 <p class="card-desc">{s.description}</p>
                 <div class="card-notice" style="border-color:{cfg.border};color:{cfg.color}">
-                  ✕ &nbsp;{s.rejectionReason ?? 'This submission did not meet our content guidelines.'}
+                  ✕ &nbsp;{s.adminResponse ?? 'This submission did not meet our content guidelines.'}
                 </div>
                 <a href="/upload" class="btn-resubmit">RESUBMIT ↗</a>
               </div>
@@ -192,6 +220,14 @@
           {/each}
         </div>
       </section>
+    {/if}
+    
+    {#if nextCursor}
+      <div class="load-more-wrap">
+        <button class="load-more-btn" onclick={loadMore} disabled={loading}>
+          {loading ? 'LOADING...' : 'LOAD MORE'}
+        </button>
+      </div>
     {/if}
 
     <div class="upload-cta">
@@ -269,4 +305,8 @@
   .cta-title span{color:var(--neon-yellow);text-shadow:0 0 20px var(--neon-yellow);}
   .btn-upload{font-family:'Share Tech Mono',monospace;font-size:.9rem;letter-spacing:.15em;text-transform:uppercase;background:transparent;color:var(--neon-yellow);border:1px solid var(--neon-yellow);padding:16px 36px;cursor:none;transition:all .3s;flex-shrink:0;text-decoration:none;display:inline-block;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);text-shadow:0 0 10px var(--neon-yellow);box-shadow:0 0 20px rgba(255,230,0,.15);}
   .btn-upload:hover{background:rgba(255,230,0,.08);box-shadow:0 0 40px rgba(255,230,0,.35);transform:translateY(-2px);}
+  .load-more-wrap{display:flex;justify-content:center;margin-bottom:40px;}
+  .load-more-btn{font-family:'Share Tech Mono',monospace;font-size:.7rem;letter-spacing:.2em;color:var(--neon-cyan);border:1px solid rgba(0,255,249,.3);background:rgba(0,255,249,.03);padding:14px 40px;cursor:none;transition:all .25s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+  .load-more-btn:hover:not(:disabled){border-color:var(--neon-cyan);box-shadow:0 0 20px rgba(0,255,249,.15);}
+  .load-more-btn:disabled{opacity:.4;}
 </style>

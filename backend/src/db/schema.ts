@@ -379,17 +379,23 @@ export const adminActions = sqliteTable("admin_actions", {
 // ============================================================================
 // RELATIONS
 // ============================================================================
+// ============================================================================
+// RELATIONS
+// ============================================================================
 
 export const usersRelations = relations(users, ({ many, one }) => ({
   sessions: many(sessions),
   games: many(games),
-  gameRequests: many(gameRequests),
-  userRequests: many(userRequests),
+  submittedGameRequests: many(gameRequests, { relationName: 'submitter' }),
+  reviewedGameRequests: many(gameRequests, { relationName: 'reviewer' }),
+  submittedUserRequests: many(userRequests, { relationName: 'submitter' }),
+  reviewedUserRequests: many(userRequests, { relationName: 'reviewer' }),
   tags: many(tags),
   reactions: many(gameReactions),
   superlikes: many(gameSuperlikes),
   views: many(gameViews),
   deactivatedByUser: one(users, {
+    relationName: 'deactivatedBy',
     fields: [users.deactivatedBy],
     references: [users.id],
   }),
@@ -419,29 +425,28 @@ export const gamesRelations = relations(games, ({ one, many }) => ({
   requests: many(gameRequests),
 }));
 
-export const gameRequestsRelations = relations(
-  gameRequests,
-  ({ one, many }) => ({
-    game: one(games, {
-      fields: [gameRequests.gameId],
-      references: [games.id],
-    }),
-    submitter: one(users, {
-      fields: [gameRequests.submittedBy],
-      references: [users.id],
-    }),
-    reviewer: one(users, {
-      fields: [gameRequests.reviewedBy],
-      references: [users.id],
-    }),
-    coverMedia: one(gameMedia, {
-      fields: [gameRequests.coverMediaId],
-      references: [gameMedia.id],
-    }),
-    media: many(gameMedia),
-    tags: many(gameRequestTags),
+export const gameRequestsRelations = relations(gameRequests, ({ one, many }) => ({
+  game: one(games, {
+    fields: [gameRequests.gameId],
+    references: [games.id],
   }),
-);
+  submitter: one(users, {
+    relationName: 'submitter',
+    fields: [gameRequests.submittedBy],
+    references: [users.id],
+  }),
+  reviewer: one(users, {
+    relationName: 'reviewer',
+    fields: [gameRequests.reviewedBy],
+    references: [users.id],
+  }),
+  coverMedia: one(gameMedia, {
+    fields: [gameRequests.coverMediaId],
+    references: [gameMedia.id],
+  }),
+  media: many(gameMedia),
+  tags: many(gameRequestTags),
+}));
 
 export const gameMediaRelations = relations(gameMedia, ({ one }) => ({
   gameRequest: one(gameRequests, {
@@ -454,19 +459,16 @@ export const gameMediaRelations = relations(gameMedia, ({ one }) => ({
   }),
 }));
 
-export const gameRequestTagsRelations = relations(
-  gameRequestTags,
-  ({ one }) => ({
-    gameRequest: one(gameRequests, {
-      fields: [gameRequestTags.gameRequestId],
-      references: [gameRequests.id],
-    }),
-    tag: one(tags, {
-      fields: [gameRequestTags.tagId],
-      references: [tags.id],
-    }),
+export const gameRequestTagsRelations = relations(gameRequestTags, ({ one }) => ({
+  gameRequest: one(gameRequests, {
+    fields: [gameRequestTags.gameRequestId],
+    references: [gameRequests.id],
   }),
-);
+  tag: one(tags, {
+    fields: [gameRequestTags.tagId],
+    references: [tags.id],
+  }),
+}));
 
 export const tagsRelations = relations(tags, ({ one, many }) => ({
   creator: one(users, {
@@ -523,10 +525,12 @@ export const gameViewsRelations = relations(gameViews, ({ one }) => ({
 
 export const userRequestsRelations = relations(userRequests, ({ one }) => ({
   submitter: one(users, {
+    relationName: 'submitter',
     fields: [userRequests.submittedBy],
     references: [users.id],
   }),
   reviewer: one(users, {
+    relationName: 'reviewer',
     fields: [userRequests.reviewedBy],
     references: [users.id],
   }),
@@ -538,6 +542,7 @@ export const userRequestsRelations = relations(userRequests, ({ one }) => ({
 
 export const adminActionsRelations = relations(adminActions, ({ one }) => ({
   admin: one(users, {
+    relationName: 'admin',
     fields: [adminActions.adminId],
     references: [users.id],
   }),
@@ -550,6 +555,7 @@ export const adminActionsRelations = relations(adminActions, ({ one }) => ({
     references: [userRequests.id],
   }),
   targetUser: one(users, {
+    relationName: 'targetUser',
     fields: [adminActions.targetUserId],
     references: [users.id],
   }),
