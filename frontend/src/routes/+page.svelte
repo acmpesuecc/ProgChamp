@@ -3,7 +3,6 @@
 
   import Navbar        from '$lib/components/Navbar.svelte';
   import HeroSection   from '$lib/components/HeroSection.svelte';
-  import MarqueeTicker from '$lib/components/MarqueeTicker.svelte';
   import GameCard      from '$lib/components/GameCard.svelte';
   import CategoryItem  from '$lib/components/CategoryItem.svelte';
   import UploadCTA     from '$lib/components/UploadCTA.svelte';
@@ -31,7 +30,7 @@
 <svelte:head>
   <title>PROGCHAMP // Game Vault</title>
   <link
-    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Oxanium:wght@300;400;600;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Pixelify+Sans:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap"
     rel="stylesheet"
   />
 </svelte:head>
@@ -51,8 +50,6 @@
   onViewLibrary={() => goTo('/my-games', true)}
 />
 
-<!-- ── Scrolling ticker ───────────────────────────────────── -->
-<MarqueeTicker />
 
 <!-- ── Trending games grid ────────────────────────────────── -->
 <section>
@@ -113,11 +110,11 @@
 
 <style>
   /* ── Trending title glitch ───────────────────────────────── */
-  .trending-title { color:var(--neon-cyan); text-shadow:0 0 20px var(--neon-cyan),0 0 40px rgba(0,255,249,.3); position:relative; cursor:none; }
+  .trending-title { color:var(--neon-cyan);  position:relative; cursor: var(--cursor-pointer); }
   .trending-title::before,
   .trending-title::after  { content:'TRENDING'; position:absolute; left:0; top:0; width:100%; height:100%; opacity:0; }
-  .trending-title::before { color:var(--neon-pink);   text-shadow:0 0 20px var(--neon-pink); }
-  .trending-title::after  { color:var(--neon-yellow);  text-shadow:0 0 20px var(--neon-yellow); }
+  .trending-title::before { color:var(--neon-pink);    }
+  .trending-title::after  { color:var(--neon-yellow);   }
   .trending-title:hover               { animation:tGlitchMain .5s steps(1) infinite; }
   .trending-title:hover::before       { animation:tGlitch1    .5s steps(1) infinite; }
   .trending-title:hover::after        { animation:tGlitch2    .5s steps(1) infinite; }
@@ -126,16 +123,16 @@
   @keyframes tGlitch2    { 0%,100%{opacity:0;transform:none;clip-path:none} 30%,35%{opacity:1;transform:translateX(4px);clip-path:polygon(0 50%,100% 50%,100% 70%,0 70%)} 60%,65%{opacity:1;transform:translateX(-3px);clip-path:polygon(0 15%,100% 15%,100% 35%,0 35%)} 90%{opacity:0} }
 
   /* ── Games grid ──────────────────────────────────────────── */
-  .games-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; background:rgba(0,255,249,.05); border:1px solid rgba(0,255,249,.1); }
+  .games-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; background:rgba(232,93,130,0.2); border:1px solid rgba(232,93,130,0.25); }
 
   /* ── Categories ──────────────────────────────────────────── */
-  .categories-section { background:rgba(10,0,20,.8); border-top:1px solid rgba(191,0,255,.2); border-bottom:1px solid rgba(191,0,255,.2); }
+  .categories-section { background:rgba(30,14,30,.8); border-top:1px solid rgba(124,77,191,0.35); border-bottom:1px solid rgba(124,77,191,0.35); }
   .cat-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:16px; }
 
   /* ── Sign-up CTA section ─────────────────────────────────── */
-  .cta-section  { text-align:center; padding:140px 60px; background:radial-gradient(ellipse at center,rgba(191,0,255,.08) 0%,transparent 70%); border-top:1px solid rgba(191,0,255,.1); }
-  .cta-eyebrow  { font-family:'Share Tech Mono',monospace; font-size:.7rem; letter-spacing:.3em; text-transform:uppercase; color:var(--neon-purple); text-shadow:0 0 10px var(--neon-purple); margin-bottom:20px; }
-  .cta-title    { font-family:'Bebas Neue',sans-serif; font-size:clamp(3rem,8vw,7rem); line-height:.95; letter-spacing:.02em; margin-bottom:30px; }
-  .cta-title .accent { color:var(--neon-cyan); text-shadow:0 0 30px var(--neon-cyan); }
-  .cta-sub      { font-family:'Share Tech Mono',monospace; font-size:.8rem; color:rgba(224,224,255,.4); margin-bottom:50px; letter-spacing:.1em; max-width:500px; margin-left:auto; margin-right:auto; line-height:1.8; }
+  .cta-section  { text-align:center; padding:140px 60px; background:radial-gradient(ellipse at center,rgba(124,77,191,0.23) 0%,transparent 70%); border-top:1px solid rgba(124,77,191,0.25); }
+  .cta-eyebrow  { font-family:'VT323',monospace; font-size:1.2rem; letter-spacing:.3em; text-transform:uppercase; color:var(--neon-purple);  margin-bottom:20px; }
+  .cta-title    { font-family:'Press Start 2P',sans-serif; font-size:clamp(1.8rem,4.5vw,3.2rem); line-height:.95; letter-spacing:.02em; margin-bottom:30px; }
+  .cta-title .accent { color:var(--neon-cyan);  }
+  .cta-sub      { font-family:'VT323',monospace; font-size:1.3rem; color:rgba(245,205,210,0.65); margin-bottom:50px; letter-spacing:.1em; max-width:500px; margin-left:auto; margin-right:auto; line-height:1.8; }
 </style>

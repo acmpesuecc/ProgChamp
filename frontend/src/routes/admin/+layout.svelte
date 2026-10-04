@@ -1,37 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-
   let { children } = $props();
-
-  let cursorEl = $state<HTMLDivElement | null>(null);
-  let dotEl    = $state<HTMLDivElement | null>(null);
-
-  onMount(() => {
-    let mx = 0, my = 0, cx = 0, cy = 0;
-    const onMove = (e: MouseEvent) => {
-      mx = e.clientX; my = e.clientY;
-      if (dotEl) { dotEl.style.left = mx + 'px'; dotEl.style.top = my + 'px'; }
-    };
-    document.addEventListener('mousemove', onMove);
-    const raf = () => {
-      cx += (mx - cx) * 0.12; cy += (my - cy) * 0.12;
-      if (cursorEl) { cursorEl.style.left = cx + 'px'; cursorEl.style.top = cy + 'px'; }
-      requestAnimationFrame(raf);
-    };
-    raf();
-    const addHover = (el: Element) => {
-      el.addEventListener('mouseenter', () => { if (cursorEl) { cursorEl.style.transform = 'translate(-50%,-50%) scale(2)'; cursorEl.style.borderColor = 'var(--neon-pink)'; }});
-      el.addEventListener('mouseleave', () => { if (cursorEl) { cursorEl.style.transform = 'translate(-50%,-50%) scale(1)'; cursorEl.style.borderColor = 'var(--neon-cyan)'; }});
-    };
-    document.querySelectorAll('button, a').forEach(addHover);
-    return () => document.removeEventListener('mousemove', onMove);
-  });
 </script>
 
-<div class="cursor"     bind:this={cursorEl}></div>
-<div class="cursor-dot" bind:this={dotEl}></div>
-<div class="grid-bg"></div>
-<div class="noise"></div>
 
 <nav>
   <a href="/" class="logo-wrap">
@@ -56,16 +26,16 @@
 </main>
 
 <style>
-  nav { position:fixed; top:0; left:0; right:0; z-index:200; display:flex; align-items:center; gap:22px; padding:14px 48px; border-bottom:1px solid rgba(0,255,249,.15); background:rgba(3,0,10,.92); backdrop-filter:blur(14px); }
+  nav { position:fixed; top:0; left:0; right:0; z-index:200; display:flex; align-items:center; gap:22px; padding:14px 48px; background:rgba(36,19,44,.98); }
   .logo-wrap { display:flex; flex-direction:column; text-decoration:none; flex-shrink:0; gap:2px; }
-  .logo { font-family:'Bebas Neue',sans-serif; font-size:2.4rem; letter-spacing:.12em; color:var(--neon-cyan); text-shadow:0 0 20px var(--neon-cyan); }
-  .logo em { color:var(--neon-pink); font-style:normal; text-shadow:0 0 20px var(--neon-pink); }
-  .logo-sub { font-family:'Share Tech Mono',monospace; font-size:.7rem; letter-spacing:.14em; color:rgba(0,255,249,.4); }
-  .nav-back { font-family:'Share Tech Mono',monospace; font-size:.65rem; letter-spacing:.15em; text-transform:uppercase; color:rgba(224,224,255,.4); text-decoration:none; transition:color .2s; }
+  .logo { font-family:'Press Start 2P',sans-serif; font-size:2.4rem; letter-spacing:.12em; color:var(--neon-cyan);  }
+  .logo em { color:var(--neon-pink); font-style:normal;  }
+  .logo-sub { font-family:'Caveat',cursive; font-size:1rem; font-weight:600; letter-spacing:.02em; color:rgba(114,61,81,.85); }
+  .nav-back { font-family:'VT323',monospace; font-size:1.45rem; letter-spacing:.1em; text-transform:uppercase; color:rgba(245,205,210,0.65); text-decoration:none; transition:color .2s; }
   .nav-back:hover { color:var(--neon-cyan); }
-  .nav-badge { font-family:'Share Tech Mono',monospace; font-size:.6rem; letter-spacing:.2em; background:rgba(255,0,110,.12); border:1px solid rgba(255,0,110,.4); color:var(--neon-pink); padding:5px 14px; text-transform:uppercase; margin-left:auto; }
+  .nav-badge { font-family:'VT323',monospace; font-size:1.35rem; letter-spacing:.15em; background:rgba(124,77,191,0.27); border:1px solid rgba(124,77,191,0.4); color:var(--neon-pink); padding:5px 14px; text-transform:uppercase; margin-left:auto; }
   main { position:relative; z-index:10; padding:100px 48px 60px; }
   .nav-links { display:flex; align-items:center; gap:24px; margin-left:24px; }
-    .nav-link { font-family:'Share Tech Mono',monospace; font-size:.62rem; letter-spacing:.15em; text-transform:uppercase; color:rgba(224,224,255,.4); text-decoration:none; transition:color .2s; padding-bottom:2px; border-bottom:1px solid transparent; }
+    .nav-link { font-family:'VT323',monospace; font-size:1.4rem; letter-spacing:.1em; text-transform:uppercase; color:rgba(245,205,210,0.65); text-decoration:none; transition:color .2s; padding-bottom:2px; border-bottom:1px solid transparent; }
     .nav-link:hover { color:var(--neon-cyan); border-bottom-color:var(--neon-cyan); }
 </style>

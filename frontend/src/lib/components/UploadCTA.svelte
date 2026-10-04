@@ -32,44 +32,43 @@
       align-items: center;
       justify-content: space-between;
       gap: 40px;
-      border: 1px solid rgba(255,230,0,.2);
+      border: 1px solid rgba(240,137,158,0.35);
       padding: 50px 60px;
-      background: rgba(255,230,0,.02);
+      background: rgba(240,137,158,0.17);
       position: relative;
-      clip-path: polygon(16px 0%,100% 0%,calc(100% - 16px) 100%,0% 100%);
+      border-radius: 10px;
     }
     .upload-cta-inner::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, rgba(255,230,0,.04) 0%, transparent 60%);
+      background: linear-gradient(90deg, rgba(240,137,158,0.19) 0%, transparent 60%);
       pointer-events: none;
     }
   
-    .upload-eyebrow { font-family:'Share Tech Mono',monospace; font-size:.6rem; letter-spacing:.3em; text-transform:uppercase; color:var(--neon-yellow); text-shadow:0 0 8px var(--neon-yellow); margin-bottom:12px; }
-    .upload-title   { font-family:'Bebas Neue',sans-serif; font-size:3rem; letter-spacing:.05em; line-height:1; margin-bottom:12px; }
-    .upload-title span { color:var(--neon-yellow); text-shadow:0 0 20px var(--neon-yellow); }
-    .upload-sub     { font-family:'Share Tech Mono',monospace; font-size:.72rem; color:rgba(224,224,255,.4); letter-spacing:.08em; line-height:1.7; max-width:420px; }
+    .upload-eyebrow { font-family:'VT323',monospace; font-size:1.1rem; letter-spacing:.3em; text-transform:uppercase; color:var(--neon-yellow);  margin-bottom:12px; }
+    .upload-title   { font-family:'Press Start 2P',sans-serif; font-size: 2.2rem; letter-spacing:.05em; line-height:1; margin-bottom:12px; }
+    .upload-title span { color:var(--neon-yellow);  }
+    .upload-sub     { font-family:'VT323',monospace; font-size:1.22rem; color:rgba(245,205,210,0.65); letter-spacing:.08em; line-height:1.7; max-width:420px; }
   
     .btn-upload {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: .78rem;
+      font-family: 'VT323', monospace;
+      font-size: 1.28rem;
       letter-spacing: .15em;
       text-transform: uppercase;
       background: transparent;
       color: var(--neon-yellow);
       border: 1px solid var(--neon-yellow);
       padding: 18px 44px;
-      cursor: none;
+      cursor: var(--cursor-pointer);
       transition: all .3s;
       flex-shrink: 0;
-      clip-path: polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);
-      text-shadow: 0 0 10px var(--neon-yellow);
-      box-shadow: 0 0 20px rgba(255,230,0,.15);
+      border-radius: 10px;
+      
+      
     }
     .btn-upload:hover {
-      background: rgba(255,230,0,.1);
-      box-shadow: 0 0 40px rgba(255,230,0,.35);
+      background: rgba(240,137,158,0.25);
       transform: translateY(-2px);
     }
-  </style>
+  </style>

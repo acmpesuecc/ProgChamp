@@ -76,7 +76,7 @@
 
 <svelte:head>
   <title>UPLOAD // PROGCHAMP</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Oxanium:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Pixelify+Sans:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet" />
 </svelte:head>
 
 <!-- NAV -->
@@ -90,8 +90,6 @@
 
 <!-- PAGE HEADER -->
 <header class="page-header">
-  <div class="header-orb orb1"></div>
-  <div class="header-orb orb2"></div>
   <div class="header-inner">
     <div class="header-eyebrow">// DEVELOPER TERMINAL</div>
     <h1 class="header-title">UPLOAD YOUR <span>GAME</span></h1>
@@ -306,29 +304,25 @@
   .page-header {
     position: relative; z-index: 10;
     padding: 160px 60px 80px;
-    border-bottom: 1px solid rgba(0,255,249,.08);
-    background: radial-gradient(ellipse at 30% 50%, rgba(191,0,255,.07) 0%, transparent 60%);
+    background: radial-gradient(ellipse at 30% 50%, rgba(124,77,191,0.22) 0%, transparent 60%);
     overflow: hidden;
   }
-  .header-orb { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; }
-  .header-orb.orb1 { width: 400px; height: 400px; background: rgba(191,0,255,.12); top: -100px; left: -80px; }
-  .header-orb.orb2 { width: 300px; height: 300px; background: rgba(0,255,249,.08); bottom: -50px; right: 10%; }
   .header-inner { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; text-align: center; }
   .header-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .8rem; letter-spacing: .35em; text-transform: uppercase;
-    color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow);
+    font-family: 'VT323', monospace;
+    font-size: 1.3rem; letter-spacing: .35em; text-transform: uppercase;
+    color:var(--gold); 
     margin-bottom: 16px;
   }
   .header-title {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'Press Start 2P', sans-serif;
     font-size: clamp(3.5rem, 8vw, 9rem); letter-spacing: .04em; line-height: .95;
     margin-bottom: 20px;
   }
-  .header-title span { color: var(--neon-yellow); text-shadow: 0 0 30px var(--neon-yellow); }
+  .header-title span { color: var(--neon-yellow);  }
   .header-sub {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .78rem; color: rgba(224,224,255,.4);
+    font-family: 'VT323', monospace;
+    font-size: 1.28rem; color: rgba(245,205,210,0.65);
     letter-spacing: .08em; line-height: 1.8; max-width: 500px;
     margin-left: auto; margin-right: auto;
   }
@@ -343,19 +337,19 @@
   /* PANELS */
   .form-panel, .thumb-panel {
     position: relative;
-    background: rgba(10,0,20,.6);
-    border: 1px solid rgba(0,255,249,.12);
+    background: rgba(30,14,30,.6);
+    border: 1px solid rgba(232,93,130,0.27);
     padding: 40px;
     backdrop-filter: blur(8px);
-    clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
+    border-radius: 10px;
   }
   .panel-corner { position: absolute; width: 20px; height: 20px; }
   .panel-corner.tl { top: 12px; left: 12px; border-top: 2px solid var(--neon-cyan); border-left: 2px solid var(--neon-cyan); }
   .panel-corner.br { bottom: 12px; right: 12px; border-bottom: 2px solid var(--neon-cyan); border-right: 2px solid var(--neon-cyan); }
   .panel-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .85rem; letter-spacing: .3em; text-transform: uppercase;
-    color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan);
+    font-family: 'VT323', monospace;
+    font-size: 1.35rem; letter-spacing: .3em; text-transform: uppercase;
+    color:var(--neon-cyan); 
     margin-bottom: 28px;
   }
 
@@ -363,106 +357,106 @@
   .upload-form { display: flex; flex-direction: column; gap: 24px; }
   .form-group  { display: flex; flex-direction: column; gap: 8px; }
   .form-label  {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .85rem; letter-spacing: .2em; text-transform: uppercase;
-    color: rgba(0,255,249,.6);
+    font-family: 'VT323', monospace;
+    font-size: 1.35rem; letter-spacing: .2em; text-transform: uppercase;
+    color: rgba(232,93,130,0.6);
   }
   .form-input {
-    background: rgba(0,255,249,.03); border: 1px solid rgba(0,255,249,.15);
-    color: var(--text); font-family: 'Share Tech Mono', monospace;
-    font-size: .8rem; letter-spacing: .06em;
+    background: rgba(232,93,130,0.18); border: 1px solid rgba(232,93,130,0.3);
+    color: var(--text); font-family: 'VT323', monospace;
+    font-size: 1.3rem; letter-spacing: .06em;
     padding: 12px 16px; outline: none;
     transition: border-color .3s, box-shadow .3s;
-    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    border-radius: 10px;
     width: 100%;
   }
-  .form-input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0,255,249,.1); }
-  .form-input::placeholder { color: rgba(224,224,255,.2); }
+  .form-input:focus { border-color: var(--neon-cyan);  }
+  .form-input::placeholder { color: rgba(245,205,210,0.45); }
   .form-select {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300fff9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 16px center; cursor: none;
+    background-repeat: no-repeat; background-position: right 16px center; cursor: var(--cursor-pointer);
   }
-  .form-select option { background: #0a0014; color: var(--text); }
-  .form-textarea { resize: vertical; min-height: 120px; font-family: 'Share Tech Mono', monospace; line-height: 1.6; }
+  .form-select option { background: #1E0E1E; color: var(--text); }
+  .form-textarea { resize: vertical; min-height: 120px; font-family: 'VT323', monospace; line-height: 1.6; }
   .input-with-prefix { display: flex; align-items: stretch; }
   .input-prefix {
-    font-family: 'Share Tech Mono', monospace; font-size: .9rem; letter-spacing: .05em;
-    background: rgba(0,255,249,.06); border: 1px solid rgba(0,255,249,.15); border-right: none;
-    color: rgba(0,255,249,.5); padding: 12px 14px; display: flex; align-items: center; flex-shrink: 0;
-    clip-path: polygon(6px 0%, 100% 0%, 100% 100%, 0% 100%);
+    font-family: 'VT323', monospace; font-size: 1.4rem; letter-spacing: .05em;
+    background: rgba(232,93,130,0.21); border: 1px solid rgba(232,93,130,0.3); border-right: none;
+    color: rgba(232,93,130,0.5); padding: 12px 14px; display: flex; align-items: center; flex-shrink: 0;
+    border-radius: 10px;
   }
-  .input-prefixed { clip-path: polygon(0% 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%); border-left: none; }
+  .input-prefixed { border-radius: 10px; border-left: none; }
 
   .btn-submit {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .8rem; letter-spacing: .2em; text-transform: uppercase;
+    font-family: 'VT323', monospace;
+    font-size: 1.3rem; letter-spacing: .2em; text-transform: uppercase;
     background: transparent; color: var(--neon-yellow); border: 1px solid var(--neon-yellow);
-    padding: 18px 32px; cursor: none; transition: all .3s; margin-top: 8px;
-    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
-    text-shadow: 0 0 10px var(--neon-yellow); box-shadow: 0 0 20px rgba(255,230,0,.15);
+    padding: 18px 32px; cursor: var(--cursor-pointer); transition: all .3s; margin-top: 8px;
+    border-radius: 10px;
+     
   }
-  .btn-submit:hover:not(:disabled) { background: rgba(255,230,0,.08); box-shadow: 0 0 40px rgba(255,230,0,.4); transform: translateY(-2px); }
+  .btn-submit:hover:not(:disabled) { background: rgba(240,137,158,0.23);  transform: translateY(-2px); }
   .btn-submit:disabled { opacity: .4; cursor: not-allowed; }
-  .success-text { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+  .success-text { color: var(--neon-cyan);  }
   .submit-note {
-    font-family: 'Share Tech Mono', monospace; font-size: .8rem; letter-spacing: .1em;
-    color: rgba(0,255,249,.5); text-align: center; line-height: 1.6;
+    font-family: 'VT323', monospace; font-size: 1.3rem; letter-spacing: .1em;
+    color: rgba(232,93,130,0.5); text-align: center; line-height: 1.6;
   }
 
   /* DROPZONE */
   .dropzone {
-    position: relative; border: 1px dashed rgba(0,255,249,.25);
+    position: relative; border: 1px dashed rgba(232,93,130,0.4);
     min-height: 240px; display: flex; align-items: center; justify-content: center;
-    transition: border-color .3s, background .3s; cursor: none; overflow: hidden;
-    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: border-color .3s, background .3s; cursor: var(--cursor-pointer); overflow: hidden;
+    border-radius: 10px;
   }
-  .dropzone.dragover { border-color: var(--neon-cyan); background: rgba(0,255,249,.05); box-shadow: 0 0 30px rgba(0,255,249,.1) inset; }
-  .dropzone.has-preview { border-style: solid; border-color: rgba(0,255,249,.2); }
-  .dropzone:hover { border-color: rgba(0,255,249,.5); }
-  .dropzone-label { position: absolute; inset: 0; cursor: none; z-index: 1; }
+  .dropzone.dragover { border-color: var(--neon-cyan); background: rgba(232,93,130,0.2);  }
+  .dropzone.has-preview { border-style: solid; border-color: rgba(232,93,130,0.35); }
+  .dropzone:hover { border-color: rgba(232,93,130,0.5); }
+  .dropzone-label { position: absolute; inset: 0; cursor: var(--cursor-pointer); z-index: 1; }
   .file-input-hidden { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
   .dropzone-content { text-align: center; pointer-events: none; padding: 20px; }
-  .drop-icon { font-size: 3.5rem; color: rgba(0,255,249,.25); margin-bottom: 12px; display: block; line-height: 1; transition: color .3s; }
-  .dropzone:hover .drop-icon { color: rgba(0,255,249,.5); }
+  .drop-icon { font-size: 3.5rem; color: rgba(232,93,130,0.4); margin-bottom: 12px; display: block; line-height: 1; transition: color .3s; }
+  .dropzone:hover .drop-icon { color: rgba(232,93,130,0.5); }
   .dragover .drop-icon { color: var(--neon-cyan); }
-  .drop-label { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: .1em; color: rgba(224,224,255,.5); margin-bottom: 6px; }
-  .drop-sub   { font-family: 'Share Tech Mono', monospace; font-size: .8rem; letter-spacing: .15em; color: rgba(224,224,255,.25); margin-bottom: 12px; }
-  .drop-hint  { font-family: 'Share Tech Mono', monospace; font-size: .58rem; letter-spacing: .1em; color: rgba(0,255,249,.3); border: 1px solid rgba(0,255,249,.1); padding: 4px 12px; display: inline-block; }
+  .drop-label { font-family: 'Press Start 2P', sans-serif; font-size: 1.4rem; letter-spacing: .1em; color: rgba(245,205,210,0.75); margin-bottom: 6px; }
+  .drop-sub   { font-family: 'VT323', monospace; font-size: 1.3rem; letter-spacing: .15em; color: rgba(245,205,210,0.5); margin-bottom: 12px; }
+  .drop-hint  { font-family: 'VT323', monospace; font-size: 1.08rem; letter-spacing: .1em; color: rgba(232,93,130,0.45); border: 1px solid rgba(232,93,130,0.25); padding: 4px 12px; display: inline-block; }
   .thumb-preview { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
-  .thumb-overlay { position: absolute; inset: 0; background: rgba(3,0,10,.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .3s; z-index: 2; }
+  .thumb-overlay { position: absolute; inset: 0; background: rgba(36,19,44,.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .3s; z-index: 2; }
   .dropzone.has-preview:hover .thumb-overlay { opacity: 1; }
   .thumb-change-btn {
-    font-family: 'Share Tech Mono', monospace; font-size: .9rem; letter-spacing: .2em; text-transform: uppercase;
-    color: var(--neon-cyan); border: 1px solid var(--neon-cyan); padding: 10px 24px; cursor: none;
-    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-    text-shadow: 0 0 8px var(--neon-cyan); background: rgba(0,255,249,.06);
+    font-family: 'VT323', monospace; font-size: 1.4rem; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--neon-cyan); border: 1px solid var(--neon-cyan); padding: 10px 24px; cursor: var(--cursor-pointer);
+    border-radius: 10px;
+     background: rgba(232,93,130,0.21);
   }
 
   /* TIPS */
-  .tips-block { margin-top: 28px; border: 1px solid rgba(255,230,0,.1); padding: 20px 24px; background: rgba(255,230,0,.02); clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%); }
-  .tips-title { font-family: 'Share Tech Mono', monospace; font-size: .58rem; letter-spacing: .25em; text-transform: uppercase; color: var(--neon-yellow); text-shadow: 0 0 8px var(--neon-yellow); margin-bottom: 14px; }
+  .tips-block { margin-top: 28px; border: 1px solid rgba(240,137,158,0.25); padding: 20px 24px; background: rgba(240,137,158,0.17); border-radius: 10px; }
+  .tips-title { font-family: 'VT323', monospace; font-size: 1.08rem; letter-spacing: .25em; text-transform: uppercase; color: var(--neon-yellow);  margin-bottom: 14px; }
   .tips-list  { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-  .tips-list li { font-family: 'Share Tech Mono', monospace; font-size: .8rem; letter-spacing: .05em; line-height: 1.5; color: rgba(224,224,255,.35); padding-left: 14px; position: relative; }
-  .tips-list li::before { content: '›'; position: absolute; left: 0; color: var(--neon-yellow); font-size: .8rem; }
+  .tips-list li { font-family: 'VT323', monospace; font-size: 1.3rem; letter-spacing: .05em; line-height: 1.5; color: rgba(245,205,210,0.6); padding-left: 14px; position: relative; }
+  .tips-list li::before { content: '›'; position: absolute; left: 0; color: var(--neon-yellow); font-size: 1.3rem; }
 
   /* LOADING DOTS */
   .loading-dots span              { animation: dotBlink 1.2s infinite; display: inline-block; }
   .loading-dots span:nth-child(2) { animation-delay: .2s; }
   .loading-dots span:nth-child(3) { animation-delay: .4s; }
   @keyframes dotBlink { 0%,80%,100% { opacity:0 } 40% { opacity:1 } }
-  .video-drop{position:relative;border:1px dashed rgba(191,0,255,.25);min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:border-color .3s,background .3s;cursor:none;overflow:hidden;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);}
-  .video-drop:hover{border-color:rgba(191,0,255,.5);}
-  .video-drop.has-video{border-style:solid;border-color:rgba(191,0,255,.3);background:rgba(191,0,255,.03);}
-  .video-name{display:flex;align-items:center;gap:10px;font-family:'Share Tech Mono',monospace;font-size:.75rem;letter-spacing:.08em;color:rgba(224,224,255,.6);padding:0 20px;text-align:center;}
-  .video-icon{color:var(--neon-purple);text-shadow:0 0 8px var(--neon-purple);}
-  .video-clear{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.15em;color:rgba(255,0,110,.6);border:1px solid rgba(255,0,110,.2);background:transparent;padding:6px 14px;cursor:none;transition:all .25s;clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);}
+  .video-drop{position:relative;border:1px dashed rgba(124,77,191,0.4);min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:border-color .3s,background .3s;cursor: var(--cursor-pointer);overflow:hidden;border-radius: 10px;}
+  .video-drop:hover{border-color:rgba(124,77,191,0.5);}
+  .video-drop.has-video{border-style:solid;border-color:rgba(124,77,191,0.45);background:rgba(124,77,191,0.18);}
+  .video-name{display:flex;align-items:center;gap:10px;font-family:'VT323',monospace;font-size:1.25rem;letter-spacing:.08em;color:rgba(245,205,210,0.7);padding:0 20px;text-align:center;}
+  .video-icon{color:var(--neon-purple);}
+  .video-clear{font-family:'VT323',monospace;font-size:1.1rem;letter-spacing:.15em;color:rgba(124,77,191,0.6);border:1px solid rgba(124,77,191,0.35);background:transparent;padding:6px 14px;cursor: var(--cursor-pointer);transition:all .25s;border-radius: 10px;}
   .video-clear:hover{color:var(--neon-pink);border-color:var(--neon-pink);}
   .error-note {
-    font-family: 'Share Tech Mono', monospace; font-size: .8rem; letter-spacing: .1em;
+    font-family: 'VT323', monospace; font-size: 1.3rem; letter-spacing: .1em;
     color: rgba(255, 80, 80, .8); text-align: center; line-height: 1.6;
     border: 1px solid rgba(255, 80, 80, .2); padding: 10px 16px;
     background: rgba(255, 0, 0, .04);
-    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    border-radius: 10px;
   }
 </style>

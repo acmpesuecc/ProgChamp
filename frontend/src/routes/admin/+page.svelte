@@ -234,23 +234,23 @@
     margin-bottom: 40px;
   }
   .page-eyebrow {
-    font-family: "Share Tech Mono", monospace;
-    font-size: 0.62rem;
+    font-family: "VT323", monospace;
+    font-size: 1.12rem;
     letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: var(--neon-pink);
-    text-shadow: 0 0 8px var(--neon-pink);
+    color:var(--gold);
+    
     margin-bottom: 10px;
   }
   .page-title {
-    font-family: "Bebas Neue", sans-serif;
+    font-family: "Press Start 2P", sans-serif;
     font-size: 4rem;
     letter-spacing: 0.05em;
     line-height: 1;
   }
   .page-title span {
     color: var(--neon-cyan);
-    text-shadow: 0 0 20px var(--neon-cyan);
+    
   }
 
   .stats-row {
@@ -260,8 +260,8 @@
     margin-bottom: 32px;
   }
   .stat-card {
-    border: 1px solid rgba(0, 255, 249, 0.15);
-    background: rgba(0, 255, 249, 0.02);
+    border: 1px solid rgba(232,93,130,0.3);
+    background: rgba(232,93,130,0.17);
     padding: 24px 28px;
     position: relative;
     overflow: hidden;
@@ -276,54 +276,54 @@
   }
   .stat-card.cyan::before {
     background: var(--neon-cyan);
-    box-shadow: 0 0 12px var(--neon-cyan);
+    
   }
   .stat-card.pink::before {
     background: var(--neon-pink);
-    box-shadow: 0 0 12px var(--neon-pink);
+    
   }
   .stat-card.purple::before {
     background: var(--neon-purple);
-    box-shadow: 0 0 12px var(--neon-purple);
+    
   }
   .stat-card.yellow::before {
     background: var(--neon-yellow);
-    box-shadow: 0 0 12px var(--neon-yellow);
+    
   }
   .stat-label {
-    font-family: "Share Tech Mono", monospace;
-    font-size: 0.6rem;
+    font-family: "VT323", monospace;
+    font-size: 1.1rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: rgba(224, 224, 255, 0.4);
+    color: rgba(245,205,210,0.65);
     margin-bottom: 10px;
   }
   .stat-value {
-    font-family: "Bebas Neue", sans-serif;
+    font-family: "Press Start 2P", sans-serif;
     font-size: 3rem;
     line-height: 1;
     letter-spacing: 0.05em;
   }
   .stat-card.cyan .stat-value {
     color: var(--neon-cyan);
-    text-shadow: 0 0 20px var(--neon-cyan);
+    
   }
   .stat-card.pink .stat-value {
     color: var(--neon-pink);
-    text-shadow: 0 0 20px var(--neon-pink);
+    
   }
   .stat-card.purple .stat-value {
     color: var(--neon-purple);
-    text-shadow: 0 0 20px var(--neon-purple);
+    
   }
   .stat-card.yellow .stat-value {
     color: var(--neon-yellow);
-    text-shadow: 0 0 20px var(--neon-yellow);
+    
   }
   .stat-sub {
-    font-family: "Share Tech Mono", monospace;
-    font-size: 0.58rem;
-    color: rgba(224, 224, 255, 0.25);
+    font-family: "VT323", monospace;
+    font-size: 1.08rem;
+    color: rgba(245,205,210,0.5);
     margin-top: 6px;
     letter-spacing: 0.08em;
   }
@@ -334,28 +334,27 @@
     gap: 24px;
   }
   .panel {
-    border: 1px solid rgba(0, 255, 249, 0.12);
-    background: rgba(10, 0, 24, 0.6);
+    border: 1px solid rgba(232,93,130,0.27);
+    background: rgba(30,14,30,0.6);
   }
   .panel-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 18px 24px;
-    border-bottom: 1px solid rgba(0, 255, 249, 0.08);
   }
   .panel-title {
-    font-family: "Bebas Neue", sans-serif;
+    font-family: "Press Start 2P", sans-serif;
     font-size: 1.3rem;
     letter-spacing: 0.1em;
-    color: rgba(224, 224, 255, 0.8);
+    color: rgba(245,205,210,0.8);
   }
   .panel-tag {
-    font-family: "Share Tech Mono", monospace;
-    font-size: 0.55rem;
+    font-family: "VT323", monospace;
+    font-size: 1.05rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: rgba(0, 255, 249, 0.4);
+    color: rgba(232,93,130,0.4);
   }
   .panel-body {
     padding: 16px 24px;
@@ -369,14 +368,14 @@
     background: transparent;
   }
   .panel-body::-webkit-scrollbar-thumb {
-    background: rgba(0, 255, 249, 0.2);
+    background: rgba(232,93,130,0.35);
   }
 
   .empty-state {
-    font-family: "Share Tech Mono", monospace;
-    font-size: 0.65rem;
+    font-family: "VT323", monospace;
+    font-size: 1.15rem;
     letter-spacing: 0.15em;
-    color: rgba(0, 255, 249, 0.3);
+    color: rgba(232,93,130,0.45);
     text-align: center;
     padding: 40px 0;
   }
@@ -394,13 +393,13 @@
   .game-thumb-mini {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, #0a0020, #2a0060);
+    background: linear-gradient(135deg, #1E0E1E, #341F3A);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.4rem;
     flex-shrink: 0;
-    border: 1px solid rgba(191, 0, 255, 0.2);
+    border: 1px solid rgba(124,77,191,0.35);
     overflow: hidden;
   }
   .game-thumb-mini img {
@@ -413,18 +412,18 @@
     min-width: 0;
   }
   .game-name-mini {
-    font-family: "Bebas Neue", sans-serif;
+    font-family: "Press Start 2P", sans-serif;
     font-size: 1.05rem;
     letter-spacing: 0.06em;
-    color: rgba(224, 224, 255, 0.9);
+    color: rgba(245,205,210,0.9);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .game-meta-mini {
-    font-family: "Share Tech Mono", monospace;
-    font-size: 0.57rem;
-    color: rgba(224, 224, 255, 0.35);
+    font-family: "VT323", monospace;
+    font-size: 1.07rem;
+    color: rgba(245,205,210,0.6);
     letter-spacing: 0.06em;
     margin-top: 2px;
   }
@@ -439,25 +438,25 @@
     border-collapse: collapse;
   }
   th {
-    font-family: "Share Tech Mono", monospace;
-    font-size: 0.57rem;
+    font-family: "VT323", monospace;
+    font-size: 1.07rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: rgba(224, 224, 255, 0.3);
+    color: rgba(245,205,210,0.55);
     text-align: left;
     padding: 8px 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
   td {
-    font-family: "Share Tech Mono", monospace;
-    font-size: 0.63rem;
+    font-family: "VT323", monospace;
+    font-size: 1.13rem;
     padding: 11px 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    color: rgba(224, 224, 255, 0.7);
+    color: rgba(245,205,210,0.8);
     letter-spacing: 0.04em;
   }
   tr:hover td {
-    background: rgba(0, 255, 249, 0.02);
+    background: rgba(232,93,130,0.17);
   }
 
   .user-cell {
@@ -474,7 +473,7 @@
     align-items: center;
     justify-content: center;
     font-size: 0.7rem;
-    font-family: "Bebas Neue", sans-serif;
+    font-family: "Press Start 2P", sans-serif;
     color: white;
     flex-shrink: 0;
   }
@@ -483,41 +482,41 @@
     height: 28px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1px solid rgba(0, 255, 249, 0.3);
+    border: 1px solid rgba(232,93,130,0.45);
     flex-shrink: 0;
   }
 
   .badge {
     display: inline-block;
-    font-family: "Share Tech Mono", monospace;
-    font-size: 0.52rem;
+    font-family: "VT323", monospace;
+    font-size: 1.02rem;
     letter-spacing: 0.12em;
     padding: 3px 10px;
     text-transform: uppercase;
   }
   .badge-green {
-    background: rgba(0, 255, 100, 0.1);
-    border: 1px solid rgba(0, 255, 100, 0.3);
-    color: #00ff64;
+    background: rgba(143,191,139,0.1);
+    border: 1px solid rgba(143,191,139,0.3);
+    color: #8FBF8B;
   }
   .badge-pink {
-    background: rgba(255, 0, 110, 0.1);
-    border: 1px solid rgba(255, 0, 110, 0.3);
+    background: rgba(124,77,191,0.25);
+    border: 1px solid rgba(124,77,191,0.45);
     color: var(--neon-pink);
   }
   .badge-gray {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(224, 224, 255, 0.4);
+    color: rgba(245,205,210,0.65);
   }
 
   .btn-sm {
-    font-family: "Share Tech Mono", monospace;
-    font-size: 0.55rem;
+    font-family: "VT323", monospace;
+    font-size: 1.05rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     padding: 5px 14px;
-    cursor: none;
+    cursor: var(--cursor-pointer);
     border: none;
     transition: all 0.2s;
   }
@@ -525,19 +524,19 @@
     opacity: 0.4;
   }
   .btn-approve {
-    background: rgba(0, 255, 100, 0.1);
-    color: #00ff64;
-    border: 1px solid rgba(0, 255, 100, 0.3);
+    background: rgba(143,191,139,0.1);
+    color: #8FBF8B;
+    border: 1px solid rgba(143,191,139,0.3);
   }
   .btn-approve:hover:not(:disabled) {
-    background: rgba(0, 255, 100, 0.2);
+    background: rgba(143,191,139,0.2);
   }
   .btn-reject {
-    background: rgba(255, 0, 110, 0.08);
+    background: rgba(124,77,191,0.23);
     color: var(--neon-pink);
-    border: 1px solid rgba(255, 0, 110, 0.25);
+    border: 1px solid rgba(124,77,191,0.4);
   }
   .btn-reject:hover:not(:disabled) {
-    background: rgba(255, 0, 110, 0.18);
+    background: rgba(124,77,191,0.33);
   }
 </style>

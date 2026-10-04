@@ -51,7 +51,7 @@
   <style>
     .modal-backdrop {
       position: fixed; inset: 0; z-index: 1000;
-      background: rgba(3,0,10,.85);
+      background: rgba(36,19,44,.85);
       backdrop-filter: blur(8px);
       display: flex; align-items: center; justify-content: center;
       animation: fadeIn .2s ease;
@@ -62,11 +62,11 @@
       position: relative;
       width: 420px;
       background: var(--dark2);
-      border: 1px solid rgba(0,255,249,.2);
+      border: 1px solid rgba(232,93,130,0.35);
       padding: 50px 44px;
-      box-shadow: 0 0 60px rgba(0,255,249,.08), 0 0 120px rgba(191,0,255,.06);
+      
       animation: modalIn .3s ease;
-      clip-path: polygon(16px 0%,100% 0%,calc(100% - 16px) 100%,0% 100%);
+      border-radius: 10px;
     }
     @keyframes modalIn { from{opacity:0;transform:translateY(20px) scale(.97)} to{opacity:1;transform:none} }
   
@@ -74,27 +74,27 @@
     .modal-corner.tl { top:10px;    left:10px;  border-top:    2px solid var(--neon-cyan); border-left:   2px solid var(--neon-cyan); }
     .modal-corner.br { bottom:10px; right:10px; border-bottom: 2px solid var(--neon-cyan); border-right:  2px solid var(--neon-cyan); }
   
-    .modal-close       { position:absolute; top:16px; right:20px; background:transparent; border:none; color:rgba(224,224,255,.3); font-size:1rem; cursor:none; transition:color .2s; font-family:'Share Tech Mono',monospace; }
-    .modal-close:hover { color:var(--neon-pink); text-shadow:0 0 10px var(--neon-pink); }
+    .modal-close       { position:absolute; top:16px; right:20px; background:transparent; border:none; color:rgba(245,205,210,0.55); font-size:1rem; cursor: var(--cursor-pointer); transition:color .2s; font-family:'VT323',monospace; }
+    .modal-close:hover { color:var(--neon-pink);  }
   
-    .modal-eyebrow { font-family:'Share Tech Mono',monospace; font-size:.6rem; letter-spacing:.3em; text-transform:uppercase; color:var(--neon-cyan); text-shadow:0 0 8px var(--neon-cyan); margin-bottom:10px; }
-    .modal-title   { font-family:'Bebas Neue',sans-serif; font-size:4rem; line-height:1; letter-spacing:.05em; margin-bottom:10px; }
-    .modal-title span { color:var(--neon-pink); text-shadow:0 0 20px var(--neon-pink); }
-    .modal-sub     { font-family:'Share Tech Mono',monospace; font-size:.7rem; color:rgba(224,224,255,.35); letter-spacing:.08em; margin-bottom:36px; line-height:1.6; }
+    .modal-eyebrow { font-family:'VT323',monospace; font-size:1.1rem; letter-spacing:.3em; text-transform:uppercase; color:var(--gold);  margin-bottom:10px; }
+    .modal-title   { font-family:'Press Start 2P',sans-serif; font-size: 2.6rem; line-height:1; letter-spacing:.05em; margin-bottom:10px; }
+    .modal-title span { color:var(--neon-pink);  }
+    .modal-sub     { font-family:'VT323',monospace; font-size:1.2rem; color:rgba(245,205,210,0.6); letter-spacing:.08em; margin-bottom:36px; line-height:1.6; }
   
     .modal-actions { display:flex; flex-direction:column; gap:16px; }
   
     .btn-google {
       display: flex; align-items: center; justify-content: center; gap: 14px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: .75rem; letter-spacing: .15em; text-transform: uppercase;
+      font-family: 'VT323', monospace;
+      font-size: 1.25rem; letter-spacing: .15em; text-transform: uppercase;
       background: rgba(255,255,255,.04); color: var(--text);
       border: 1px solid rgba(255,255,255,.15);
-      padding: 16px 24px; cursor: none; transition: all .3s; width: 100%;
-      clip-path: polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+      padding: 16px 24px; cursor: var(--cursor-pointer); transition: all .3s; width: 100%;
+      border-radius: 10px;
     }
-    .btn-google:hover { background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.35); box-shadow:0 0 20px rgba(255,255,255,.05); transform:translateY(-1px); }
+    .btn-google:hover { background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.35);  transform:translateY(-1px); }
   
     .google-icon  { width:20px; height:20px; flex-shrink:0; }
-    .modal-terms  { font-family:'Share Tech Mono',monospace; font-size:.58rem; color:rgba(224,224,255,.2); letter-spacing:.08em; text-align:center; line-height:1.6; }
-  </style>
+    .modal-terms  { font-family:'VT323',monospace; font-size:1.08rem; color:rgba(245,205,210,0.45); letter-spacing:.08em; text-align:center; line-height:1.6; }
+  </style>

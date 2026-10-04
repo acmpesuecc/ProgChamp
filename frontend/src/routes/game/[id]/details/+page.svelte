@@ -88,7 +88,7 @@
 
 <svelte:head>
   <title>{game?.title ?? 'Game'} // PROGCHAMP</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Oxanium:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Pixelify+Sans:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet" />
 </svelte:head>
 
 <Navbar
@@ -103,8 +103,6 @@
 
   <!-- HERO -->
   <div class="hero">
-    <div class="hero-orb orb1"></div>
-    <div class="hero-orb orb2"></div>
 
     <div class="hero-inner">
       <!-- Cover art -->
@@ -232,11 +230,7 @@
   .hero {
     position: relative; overflow: hidden;
     padding: 100px 60px 60px;
-    border-bottom: 1px solid rgba(0,255,249,.08);
   }
-  .hero-orb { position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none; }
-  .hero-orb.orb1 { width: 600px; height: 600px; background: rgba(0,255,249,.05); top: -200px; right: -100px; }
-  .hero-orb.orb2 { width: 400px; height: 400px; background: rgba(191,0,255,.05); bottom: -100px; left: 10%; }
 
   .hero-inner {
     position: relative; z-index: 2;
@@ -249,32 +243,32 @@
   .cover-wrap {
     position: relative;
     aspect-ratio: 16/9;
-    border: 1px solid rgba(0,255,249,.2);
+    border: 1px solid rgba(232,93,130,0.35);
     overflow: hidden;
-    clip-path: polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);
+    border-radius: 10px;
   }
   .cover-img { width: 100%; height: 100%; object-fit: cover; }
   .cover-placeholder {
     width: 100%; height: 100%;
-    background: radial-gradient(circle at 40% 40%, rgba(0,255,249,.08), transparent 70%);
+    background: radial-gradient(circle at 40% 40%, rgba(232,93,130,0.23), transparent 70%);
     display: flex; align-items: center; justify-content: center;
   }
-  .cover-icon { font-size: 4rem; color: rgba(0,255,249,.2); }
+  .cover-icon { font-size: 4rem; color: rgba(232,93,130,0.35); }
   .cover-glow {
     position: absolute; inset: 0; pointer-events: none;
-    box-shadow: inset 0 0 40px rgba(0,255,249,.05);
+    
   }
 
   /* Hero text */
   .hero-text { display: flex; flex-direction: column; gap: 20px; }
 
   .hero-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .62rem; letter-spacing: .3em;
-    color: var(--neon-purple); text-shadow: 0 0 8px var(--neon-purple);
+    font-family: 'VT323', monospace;
+    font-size: 1.12rem; letter-spacing: .3em;
+    color:var(--gold); 
   }
   .hero-title {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'Press Start 2P', sans-serif;
     font-size: clamp(3rem, 6vw, 5.5rem);
     letter-spacing: .05em; line-height: .95; margin: 0;
   }
@@ -283,79 +277,79 @@
     display: flex; align-items: center; gap: 14px;
     text-decoration: none; color: inherit;
     padding: 12px 16px;
-    border: 1px solid rgba(0,255,249,.06);
-    background: rgba(0,255,249,.02);
+    border: 1px solid rgba(232,93,130,0.21);
+    background: rgba(232,93,130,0.17);
     transition: border-color .25s, background .25s;
-    clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+    border-radius: 10px;
     align-self: flex-start;
   }
-  .creator-link:hover { border-color: rgba(0,255,249,.2); background: rgba(0,255,249,.05); }
+  .creator-link:hover { border-color: rgba(232,93,130,0.35); background: rgba(232,93,130,0.2); }
   .creator-avatar {
     width: 40px; height: 40px; border-radius: 50%;
-    border: 1px solid rgba(0,255,249,.2);
-    background: rgba(0,255,249,.05);
+    border: 1px solid rgba(232,93,130,0.35);
+    background: rgba(232,93,130,0.2);
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;
+    font-family: 'Press Start 2P', sans-serif; font-size: 1.2rem;
     color: var(--neon-cyan); flex-shrink: 0; overflow: hidden;
   }
   .creator-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .creator-name {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .72rem; letter-spacing: .15em; color: rgba(224,224,255,.7);
+    font-family: 'VT323', monospace;
+    font-size: 1.22rem; letter-spacing: .15em; color: rgba(245,205,210,0.8);
   }
   .creator-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .52rem; letter-spacing: .18em; color: rgba(0,255,249,.4); margin-top: 2px;
+    font-family: 'VT323', monospace;
+    font-size: 1.02rem; letter-spacing: .18em; color: rgba(232,93,130,0.4); margin-top: 2px;
   }
 
   /* Stats */
   .stats-row { display: flex; align-items: center; gap: 24px; }
   .stat-item { display: flex; flex-direction: column; gap: 2px; }
   .stat-val {
-    font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1;
-    color: var(--neon-cyan); text-shadow: 0 0 12px var(--neon-cyan);
+    font-family: 'Press Start 2P', sans-serif; font-size: 1.8rem; line-height: 1;
+    color: var(--neon-cyan); 
   }
   .stat-key {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .52rem; letter-spacing: .2em; color: rgba(224,224,255,.3);
+    font-family: 'VT323', monospace;
+    font-size: 1.02rem; letter-spacing: .2em; color: rgba(245,205,210,0.55);
   }
-  .stat-divider { width: 1px; height: 36px; background: rgba(0,255,249,.1); }
+  .stat-divider { width: 1px; height: 36px; background: rgba(232,93,130,0.25); }
 
   /* Reactions */
   .reactions { display: flex; gap: 8px; flex-wrap: wrap; }
   .react-btn {
     display: flex; align-items: center; gap: 8px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .62rem; letter-spacing: .12em;
-    background: rgba(0,255,249,.03); border: 1px solid rgba(0,255,249,.12);
-    color: rgba(224,224,255,.4); padding: 10px 18px;
-    cursor: none; transition: all .25s;
-    clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+    font-family: 'VT323', monospace;
+    font-size: 1.12rem; letter-spacing: .12em;
+    background: rgba(232,93,130,0.18); border: 1px solid rgba(232,93,130,0.27);
+    color: rgba(245,205,210,0.65); padding: 10px 18px;
+    cursor: var(--cursor-pointer); transition: all .25s;
+    border-radius: 10px;
   }
-  .react-btn:hover { color: rgba(224,224,255,.8); border-color: rgba(0,255,249,.3); }
-  .react-count { font-size: .7rem; opacity: .7; }
-  .react-btn--like.active  { color: var(--neon-cyan);   border-color: var(--neon-cyan);   background: rgba(0,255,249,.08);  box-shadow: 0 0 16px rgba(0,255,249,.15); }
-  .react-btn--dislike.active { color: var(--neon-pink); border-color: var(--neon-pink);   background: rgba(255,0,110,.08);  box-shadow: 0 0 16px rgba(255,0,110,.15); }
-  .react-btn--superlike { border-color: rgba(255,230,0,.2); color: rgba(255,230,0,.5); }
-  .react-btn--superlike:hover { border-color: rgba(255,230,0,.5); color: var(--neon-yellow); }
-  .react-btn--superlike.active { color: var(--neon-yellow); border-color: var(--neon-yellow); background: rgba(255,230,0,.08); box-shadow: 0 0 20px rgba(255,230,0,.25); }
+  .react-btn:hover { color: rgba(245,205,210,0.8); border-color: rgba(232,93,130,0.45); }
+  .react-count { font-size: 1.2rem; opacity: .7; }
+  .react-btn--like.active  { color: var(--neon-cyan);   border-color: var(--neon-cyan);   background: rgba(232,93,130,0.23);   }
+  .react-btn--dislike.active { color: var(--neon-pink); border-color: var(--neon-pink);   background: rgba(124,77,191,0.23);   }
+  .react-btn--superlike { border-color: rgba(240,137,158,0.35); color: rgba(240,137,158,0.5); }
+  .react-btn--superlike:hover { border-color: rgba(240,137,158,0.5); color: var(--neon-yellow); }
+  .react-btn--superlike.active { color: var(--neon-yellow); border-color: var(--neon-yellow); background: rgba(240,137,158,0.23);  }
 
   /* Play button */
   .play-btn {
     display: inline-flex; align-items: center; gap: 12px; align-self: flex-start;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .72rem; letter-spacing: .2em; text-transform: uppercase;
+    font-family: 'VT323', monospace;
+    font-size: 1.22rem; letter-spacing: .2em; text-transform: uppercase;
     text-decoration: none;
-    background: rgba(0,255,249,.08); border: 1px solid rgba(0,255,249,.4);
-    color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan);
+    background: rgba(232,93,130,0.23); border: 1px solid rgba(232,93,130,0.4);
+    color: var(--neon-cyan); 
     padding: 14px 32px;
     transition: all .25s;
-    clip-path: polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
-    box-shadow: 0 0 24px rgba(0,255,249,.1);
+    border-radius: 10px;
+    
   }
   .play-btn:hover {
-    background: rgba(0,255,249,.15);
-    box-shadow: 0 0 40px rgba(0,255,249,.25);
+    background: rgba(232,93,130,0.3);
+    
   }
   .play-icon { font-size: 1rem; }
 
@@ -366,28 +360,28 @@
     display: flex; flex-direction: column; gap: 20px;
   }
   .info-card {
-    background: rgba(10,0,20,.6);
-    border: 1px solid rgba(0,255,249,.08);
+    background: rgba(30,14,30,.6);
+    border: 1px solid rgba(232,93,130,0.23);
     padding: 28px 32px;
     display: flex; flex-direction: column; gap: 16px;
     backdrop-filter: blur(8px);
   }
   .card-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .58rem; letter-spacing: .28em; color: rgba(0,255,249,.4);
+    font-family: 'VT323', monospace;
+    font-size: 1.08rem; letter-spacing: .28em; color:rgba(232,93,130,0.4);
   }
   .description {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .72rem; letter-spacing: .05em; line-height: 1.9;
-    color: rgba(224,224,255,.45); margin: 0;
+    font-family: 'VT323', monospace;
+    font-size: 1.22rem; letter-spacing: .05em; line-height: 1.9;
+    color: rgba(245,205,210,0.7); margin: 0;
   }
   .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .tag {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .55rem; letter-spacing: .15em;
-    color: rgba(191,0,255,.7); border: 1px solid rgba(191,0,255,.2);
-    background: rgba(191,0,255,.04); padding: 5px 14px;
-    clip-path: polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);
+    font-family: 'VT323', monospace;
+    font-size: 1.05rem; letter-spacing: .15em;
+    color: rgba(124,77,191,0.7); border: 1px solid rgba(124,77,191,0.35);
+    background: rgba(124,77,191,0.19); padding: 5px 14px;
+    border-radius: 10px;
   }
 
   @media (max-width: 900px) {

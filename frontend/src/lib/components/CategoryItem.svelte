@@ -22,14 +22,14 @@
   
   <style>
     .cat-item {
-      border: 1px solid rgba(191,0,255,.2);
+      border: 1px solid rgba(124,77,191,0.35);
       padding: 24px 16px;
       text-align: center;
-      cursor: none;
+      cursor: var(--cursor-pointer);
       transition: all .3s;
       position: relative;
       overflow: hidden;
-      background: rgba(191,0,255,.03);
+      background: rgba(124,77,191,0.18);
       text-decoration: none;
       display: block;
     }
@@ -37,14 +37,14 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, transparent 50%, rgba(191,0,255,.1) 100%);
+      background: linear-gradient(135deg, transparent 50%, rgba(124,77,191,0.25) 100%);
       opacity: 0;
       transition: opacity .3s;
     }
     .cat-item:hover              { border-color: var(--neon-purple); transform: translateY(-4px); }
     .cat-item:hover::before      { opacity: 1; }
-    .cat-item:hover .cat-icon    { text-shadow: 0 0 20px var(--neon-purple); transform: scale(1.2); }
+    .cat-item:hover .cat-icon    {  transform: scale(1.2); }
   
     .cat-icon { font-size: 2rem; margin-bottom: 10px; transition: all .3s; display: block; }
-    .cat-name { font-family: 'Share Tech Mono', monospace; font-size: .65rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(224,224,255,.5); }
-  </style>
+    .cat-name { font-family: 'VT323', monospace; font-size: 1.15rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(245,205,210,0.75); }
+  </style>

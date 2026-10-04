@@ -144,13 +144,13 @@
     return g.tags?.[0]?.tag?.category ?? g.tags?.[0]?.tag?.name ?? 'Game';
   }
 
-  const iconColors = ['#bf00ff','#00ccff','#ff3300','#00cc44','#ffee00','#ff0066','#ff9900'];
+  const iconColors = ['#7C4DBF','#E85D82','#C97064','#8FBF8B','#F0899E','#A85F75','#723D51'];
   const icons      = ['⬡','◈','⟁','✦','◉','⟡','◆'];
 </script>
 
 <svelte:head>
   <title>{game?.title ?? 'Game'} // PROGCHAMP</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Oxanium:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Pixelify+Sans:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet" />
 </svelte:head>
 
 <Navbar
@@ -356,9 +356,9 @@
     width: 100%;
     aspect-ratio: 16 / 9;
     background: #000;
-    border: 1px solid rgba(0,255,249,.2);
+    border: 1px solid rgba(232,93,130,0.35);
     overflow: hidden;
-    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+    border-radius: 10px;
   }
   .player-corner {
     position: absolute; width: 24px; height: 24px; z-index: 4; pointer-events: none;
@@ -381,26 +381,26 @@
 
   .fullscreen-btn {
     position: absolute; top: 10px; right: 14px; z-index: 5;
-    background: rgba(0,0,0,.5); border: 1px solid rgba(0,255,249,.2);
+    background: rgba(0,0,0,.5); border: 1px solid rgba(232,93,130,0.35);
     color: var(--neon-cyan); font-size: 1rem; line-height: 1;
     width: 32px; height: 32px;
     display: flex; align-items: center; justify-content: center;
-    cursor: none; transition: all .2s;
-    clip-path: polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);
+    cursor: var(--cursor-pointer); transition: all .2s;
+    border-radius: 10px;
   }
   .fullscreen-btn:hover {
-    background: rgba(0,255,249,.1);
+    background: rgba(232,93,130,0.25);
     border-color: var(--neon-cyan);
-    box-shadow: 0 0 12px rgba(0,255,249,.2);
+    
   }
 
   /* ── INFO BLOCK ── */
   .info-block {
-    background: rgba(10,0,20,.6);
-    border: 1px solid rgba(0,255,249,.1);
+    background: rgba(30,14,30,.6);
+    border: 1px solid rgba(232,93,130,0.25);
     border-top: none;
     padding: 24px 28px 28px;
-    clip-path: polygon(0% 0%, 100% 0%, calc(100% - 12px) 100%, 12px 100%);
+    border-radius: 10px;
     backdrop-filter: blur(8px);
   }
 
@@ -413,16 +413,16 @@
   .info-left { flex: 1; min-width: 0; }
 
   .game-genre-tag {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .6rem; letter-spacing: .25em;
-    color: var(--neon-purple); text-shadow: 0 0 8px var(--neon-purple);
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem; letter-spacing: .25em;
+    color: var(--neon-purple); 
     margin-bottom: 6px;
   }
 
   .game-title-link { text-decoration: none; color: inherit; }
-  .game-title-link:hover .game-title { color: var(--neon-cyan); text-shadow: 0 0 20px rgba(0,255,249,.3); }
+  .game-title-link:hover .game-title { color: var(--neon-cyan);  }
   .game-title {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'Press Start 2P', sans-serif;
     font-size: clamp(2rem, 4vw, 3.2rem);
     letter-spacing: .06em; line-height: 1;
     margin-bottom: 10px; transition: color .2s, text-shadow .2s;
@@ -430,18 +430,18 @@
 
   .game-meta-row {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .65rem; letter-spacing: .1em;
-    color: rgba(224,224,255,.35);
+    font-family: 'VT323', monospace;
+    font-size: 1.15rem; letter-spacing: .1em;
+    color: rgba(245,205,210,0.6);
   }
   .meta-dev-link {
-    color: rgba(224,224,255,.35); text-decoration: none; transition: color .2s;
+    color: rgba(245,205,210,0.6); text-decoration: none; transition: color .2s;
   }
   .meta-dev-link:hover { color: var(--neon-cyan); }
-  .meta-dev-link em { font-style: normal; color: rgba(0,255,249,.6); }
-  .meta-sep { color: rgba(224,224,255,.15); }
-  .meta-rating { color: var(--neon-yellow); text-shadow: 0 0 6px var(--neon-yellow); }
-  .meta-players { color: rgba(0,255,249,.5); }
+  .meta-dev-link em { font-style: normal; color: rgba(232,93,130,0.6); }
+  .meta-sep { color: rgba(245,205,210,0.4); }
+  .meta-rating { color: var(--neon-yellow);  }
+  .meta-players { color: rgba(232,93,130,0.5); }
 
   /* ── REACTIONS ── */
   .reactions {
@@ -452,52 +452,52 @@
   }
   .react-divider {
     width: 1px; height: 36px;
-    background: rgba(0,255,249,.12);
+    background: rgba(232,93,130,0.27);
     margin: 0 4px;
   }
 
   .react-btn {
     display: flex; align-items: center; gap: 7px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .65rem; letter-spacing: .12em; text-transform: uppercase;
-    background: rgba(0,255,249,.03);
-    border: 1px solid rgba(0,255,249,.12);
-    color: rgba(224,224,255,.4);
+    font-family: 'VT323', monospace;
+    font-size: 1.15rem; letter-spacing: .12em; text-transform: uppercase;
+    background: rgba(232,93,130,0.18);
+    border: 1px solid rgba(232,93,130,0.27);
+    color: rgba(245,205,210,0.65);
     padding: 8px 14px;
-    cursor: none;
+    cursor: var(--cursor-pointer);
     transition: all .25s;
-    clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+    border-radius: 10px;
   }
-  .react-btn:hover { color: rgba(224,224,255,.8); border-color: rgba(0,255,249,.3); }
+  .react-btn:hover { color: rgba(245,205,210,0.8); border-color: rgba(232,93,130,0.45); }
 
-  .react-icon { font-size: .9rem; line-height: 1; }
-  .react-count { font-size: .7rem; }
-  .react-label { font-size: .6rem; letter-spacing: .1em; }
+  .react-icon { font-size: 1.4rem; line-height: 1; }
+  .react-count { font-size: 1.2rem; }
+  .react-label { font-size: 1.1rem; letter-spacing: .1em; }
 
   .react-btn--like.active {
     color: var(--neon-cyan); border-color: var(--neon-cyan);
-    background: rgba(0,255,249,.08); box-shadow: 0 0 16px rgba(0,255,249,.2);
-    text-shadow: 0 0 8px var(--neon-cyan);
+    background: rgba(232,93,130,0.23); 
+    
   }
   .react-btn--dislike.active {
     color: var(--neon-pink); border-color: var(--neon-pink);
-    background: rgba(255,0,110,.08); box-shadow: 0 0 16px rgba(255,0,110,.2);
-    text-shadow: 0 0 8px var(--neon-pink);
+    background: rgba(124,77,191,0.23); 
+    
   }
   .react-btn--superlike {
-    border-color: rgba(255,230,0,.2); color: rgba(255,230,0,.5);
+    border-color: rgba(240,137,158,0.35); color: rgba(240,137,158,0.5);
   }
   .react-btn--superlike:hover {
-    border-color: rgba(255,230,0,.5); color: var(--neon-yellow);
+    border-color: rgba(240,137,158,0.5); color: var(--neon-yellow);
   }
   .react-btn--superlike.active {
     color: var(--neon-yellow); border-color: var(--neon-yellow);
-    background: rgba(255,230,0,.08); box-shadow: 0 0 20px rgba(255,230,0,.3);
-    text-shadow: 0 0 10px var(--neon-yellow);
+    background: rgba(240,137,158,0.23); 
+    
   }
 
   .info-divider {
-    height: 1px; background: rgba(0,255,249,.08); margin: 20px 0;
+    height: 1px; background: rgba(232,93,130,0.23); margin: 20px 0;
   }
 
   .info-bottom { display: flex; flex-direction: column; gap: 16px; }
@@ -506,59 +506,59 @@
     display: flex; align-items: center; gap: 14px;
     text-decoration: none; color: inherit;
     padding: 10px 14px;
-    border: 1px solid rgba(0,255,249,.06);
-    background: rgba(0,255,249,.02);
+    border: 1px solid rgba(232,93,130,0.21);
+    background: rgba(232,93,130,0.17);
     transition: border-color .25s, background .25s;
-    clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+    border-radius: 10px;
   }
   .dev-card:hover {
-    border-color: rgba(0,255,249,.2);
-    background: rgba(0,255,249,.05);
+    border-color: rgba(232,93,130,0.35);
+    background: rgba(232,93,130,0.2);
   }
   .dev-avatar {
     width: 40px; height: 40px;
-    border: 1px solid rgba(0,255,249,.2);
-    background: rgba(0,255,249,.05);
+    border: 1px solid rgba(232,93,130,0.35);
+    background: rgba(232,93,130,0.2);
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'Press Start 2P', sans-serif;
     font-size: 1.3rem; color: var(--neon-cyan);
-    clip-path: polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+    border-radius: 10px;
     flex-shrink: 0; overflow: hidden;
   }
   .dev-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .dev-name {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .75rem; letter-spacing: .15em; color: rgba(224,224,255,.7);
+    font-family: 'VT323', monospace;
+    font-size: 1.25rem; letter-spacing: .15em; color: rgba(245,205,210,0.8);
   }
   .dev-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .55rem; letter-spacing: .2em; color: rgba(0,255,249,.4);
+    font-family: 'VT323', monospace;
+    font-size: 1.05rem; letter-spacing: .2em; color: rgba(232,93,130,0.4);
     margin-top: 2px;
   }
 
   .game-desc {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .72rem; letter-spacing: .05em; line-height: 1.8;
-    color: rgba(224,224,255,.35); margin: 0;
+    font-family: 'VT323', monospace;
+    font-size: 1.22rem; letter-spacing: .05em; line-height: 1.8;
+    color: rgba(245,205,210,0.6); margin: 0;
   }
 
   .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .tag {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .55rem; letter-spacing: .15em;
-    color: rgba(191,0,255,.7); border: 1px solid rgba(191,0,255,.2);
-    background: rgba(191,0,255,.04); padding: 4px 12px;
-    clip-path: polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);
+    font-family: 'VT323', monospace;
+    font-size: 1.05rem; letter-spacing: .15em;
+    color: rgba(124,77,191,0.7); border: 1px solid rgba(124,77,191,0.35);
+    background: rgba(124,77,191,0.19); padding: 4px 12px;
+    border-radius: 10px;
   }
 
   .details-link {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .62rem; letter-spacing: .2em;
-    color: rgba(0,255,249,.35); text-decoration: none;
+    font-family: 'VT323', monospace;
+    font-size: 1.12rem; letter-spacing: .2em;
+    color: rgba(232,93,130,0.5); text-decoration: none;
     transition: color .2s;
     align-self: flex-start;
   }
-  .details-link:hover { color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); }
+  .details-link:hover { color: var(--neon-cyan);  }
 
   /* ── SIDEBAR ── */
   .sidebar {
@@ -570,9 +570,9 @@
   .sidebar::-webkit-scrollbar { display: none; }
 
   .sidebar-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .7rem; letter-spacing: .3em; text-transform: uppercase;
-    color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan);
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem; letter-spacing: .3em; text-transform: uppercase;
+    color:var(--neon-cyan); 
   }
 
   .sidebar-list { display: flex; flex-direction: column; gap: 10px; }
@@ -580,22 +580,22 @@
   .sidebar-card {
     display: grid; grid-template-columns: 100px 1fr;
     text-decoration: none; color: var(--text);
-    background: rgba(10,0,20,.6);
-    border: 1px solid rgba(0,255,249,.08); overflow: hidden;
+    background: rgba(30,14,30,.6);
+    border: 1px solid rgba(232,93,130,0.23); overflow: hidden;
     transition: border-color .25s, transform .25s, box-shadow .25s;
-    clip-path: polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
-    cursor: none;
+    border-radius: 10px;
+    cursor: var(--cursor-pointer);
   }
   .sidebar-card:hover {
-    border-color: rgba(0,255,249,.3);
+    border-color: rgba(232,93,130,0.45);
     transform: translateX(4px);
-    box-shadow: 0 4px 24px rgba(0,255,249,.06);
+    box-shadow: 0 4px 24px rgba(232,93,130,0.21);
   }
 
   .sidebar-thumb {
     aspect-ratio: 16/9;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(10,0,20,.8); flex-shrink: 0; overflow: hidden;
+    background: rgba(30,14,30,.8); flex-shrink: 0; overflow: hidden;
   }
   .sidebar-cover { width: 100%; height: 100%; object-fit: cover; }
   .sidebar-icon { font-size: 1.8rem; opacity: .7; }
@@ -605,37 +605,37 @@
     display: flex; flex-direction: column; gap: 3px; min-width: 0;
   }
   .sidebar-genre {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .5rem; letter-spacing: .18em;
-    color: var(--neon-purple); text-shadow: 0 0 6px var(--neon-purple);
+    font-family: 'VT323', monospace;
+    font-size: 1rem; letter-spacing: .18em;
+    color: var(--neon-purple); 
   }
   .sidebar-title {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'Press Start 2P', sans-serif;
     font-size: 1rem; letter-spacing: .06em; line-height: 1.1;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .sidebar-meta { display: flex; align-items: center; justify-content: space-between; }
   .sidebar-dev {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .52rem; letter-spacing: .06em;
-    color: rgba(224,224,255,.25); text-decoration: none;
+    font-family: 'VT323', monospace;
+    font-size: 1.02rem; letter-spacing: .06em;
+    color: rgba(245,205,210,0.5); text-decoration: none;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     transition: color .2s;
   }
   .sidebar-dev:hover { color: var(--neon-cyan); }
   .sidebar-rating {
-    font-family: 'Share Tech Mono', monospace; font-size: .55rem;
-    color: var(--neon-yellow); text-shadow: 0 0 6px var(--neon-yellow); flex-shrink: 0;
+    font-family: 'VT323', monospace; font-size: 1.05rem;
+    color: var(--neon-yellow);  flex-shrink: 0;
   }
   .sidebar-players {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .5rem; letter-spacing: .1em; color: rgba(0,255,249,.35);
+    font-family: 'VT323', monospace;
+    font-size: 1rem; letter-spacing: .1em; color: rgba(232,93,130,0.5);
   }
 
   /* Skeleton loading */
   .sidebar-skeleton { pointer-events: none; }
-  .skeleton-thumb { width: 100%; height: 100%; background: rgba(0,255,249,.03); animation: shimmer 1.5s ease-in-out infinite; }
-  .skeleton-line { height: 8px; border-radius: 2px; background: rgba(224,224,255,.06); animation: shimmer 1.5s ease-in-out infinite; }
+  .skeleton-thumb { width: 100%; height: 100%; background: rgba(232,93,130,0.18); animation: shimmer 1.5s ease-in-out infinite; }
+  .skeleton-line { height: 8px; border-radius: 2px; background: rgba(245,205,210,0.31); animation: shimmer 1.5s ease-in-out infinite; }
   .skeleton-line.short  { width: 40%; margin-bottom: 6px; }
   .skeleton-line.long   { width: 85%; margin-bottom: 5px; }
   .skeleton-line.medium { width: 60%; }

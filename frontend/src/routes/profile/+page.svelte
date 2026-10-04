@@ -23,7 +23,7 @@
 
 <svelte:head>
   <title>{user?.name ?? 'Profile'} // PROGCHAMP</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Oxanium:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Pixelify+Sans:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet" />
 </svelte:head>
 
 <Navbar
@@ -38,8 +38,6 @@
 
   <!-- ── HEADER BANNER ── -->
   <div class="banner">
-    <div class="banner-orb orb1"></div>
-    <div class="banner-orb orb2"></div>
     <div class="banner-inner">
       <div class="banner-eyebrow">// PLAYER PROFILE</div>
       <div class="banner-avatar-wrap">
@@ -190,68 +188,64 @@
   .banner {
     position: relative; overflow: hidden;
     padding: 120px 60px 60px;
-    border-bottom: 1px solid rgba(0,255,249,.08);
     text-align: center;
   }
-  .banner-orb { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; }
-  .banner-orb.orb1 { width: 500px; height: 500px; background: rgba(0,255,249,.06); top: -150px; left: -100px; }
-  .banner-orb.orb2 { width: 400px; height: 400px; background: rgba(191,0,255,.05); bottom: -100px; right: -80px; }
 
   .banner-inner { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 
   .banner-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .62rem; letter-spacing: .35em; text-transform: uppercase;
-    color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan);
+    font-family: 'VT323', monospace;
+    font-size: 1.12rem; letter-spacing: .35em; text-transform: uppercase;
+    color:var(--gold); 
   }
 
   .banner-avatar-wrap { position: relative; width: 96px; height: 96px; margin: 8px 0; }
   .banner-avatar {
     width: 100%; height: 100%; border-radius: 50%;
-    object-fit: cover; border: 2px solid rgba(0,255,249,.3);
+    object-fit: cover; border: 2px solid rgba(232,93,130,0.45);
   }
   .banner-avatar-fallback {
     width: 100%; height: 100%; border-radius: 50%;
     background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; color: white;
-    border: 2px solid rgba(0,255,249,.3);
+    font-family: 'Press Start 2P', sans-serif; font-size: 2.4rem; color: white;
+    border: 2px solid rgba(232,93,130,0.45);
   }
   .avatar-ring {
     position: absolute; inset: -4px; border-radius: 50%;
-    border: 1px solid rgba(0,255,249,.25); pointer-events: none;
+    border: 1px solid rgba(232,93,130,0.4); pointer-events: none;
     animation: ringPulse 3s ease-in-out infinite;
   }
   @keyframes ringPulse {
-    0%, 100% { box-shadow: 0 0 10px rgba(0,255,249,.15); }
-    50%       { box-shadow: 0 0 24px rgba(0,255,249,.35); }
+    0%, 100% {  }
+    50%       {  }
   }
   .admin-crown {
     position: absolute; bottom: -2px; right: -2px;
     width: 24px; height: 24px; border-radius: 50%;
-    background: rgba(255,230,0,.15); border: 1px solid rgba(255,230,0,.5);
+    background: rgba(240,137,158,0.3); border: 1px solid rgba(240,137,158,0.5);
     display: flex; align-items: center; justify-content: center;
-    font-size: .7rem; color: var(--neon-yellow);
-    text-shadow: 0 0 8px var(--neon-yellow);
+    font-size: 1.2rem; color: var(--neon-yellow);
+    
   }
 
   .banner-name {
-    font-family: 'Bebas Neue', sans-serif;
+    font-family: 'Press Start 2P', sans-serif;
     font-size: clamp(2.5rem, 5vw, 4rem); letter-spacing: .06em; line-height: 1; margin: 0;
   }
   .banner-email {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .68rem; letter-spacing: .1em; color: rgba(224,224,255,.3);
+    font-family: 'VT323', monospace;
+    font-size: 1.18rem; letter-spacing: .1em; color: rgba(245,205,210,0.55);
   }
   .banner-badges { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
   .badge {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .55rem; letter-spacing: .15em; text-transform: uppercase;
+    font-family: 'VT323', monospace;
+    font-size: 1.05rem; letter-spacing: .15em; text-transform: uppercase;
     padding: 5px 14px; pointer-events: none;
   }
-  .badge-cyan   { background: rgba(0,255,249,.06);   border: 1px solid rgba(0,255,249,.2);   color: var(--neon-cyan); }
-  .badge-pink   { background: rgba(255,0,110,.06);   border: 1px solid rgba(255,0,110,.2);   color: var(--neon-pink); }
-  .badge-yellow { background: rgba(255,230,0,.06);   border: 1px solid rgba(255,230,0,.25);  color: var(--neon-yellow); text-shadow: 0 0 6px var(--neon-yellow); }
+  .badge-cyan   { background: rgba(232,93,130,0.21);   border: 1px solid rgba(232,93,130,0.35);   color: var(--neon-cyan); }
+  .badge-pink   { background: rgba(124,77,191,0.21);   border: 1px solid rgba(124,77,191,0.35);   color: var(--neon-pink); }
+  .badge-yellow { background: rgba(240,137,158,0.21);   border: 1px solid rgba(240,137,158,0.4);  color: var(--neon-yellow);  }
 
   /* ── CONTENT GRID ── */
   .content {
@@ -267,16 +261,16 @@
 
   /* ── CARDS ── */
   .card {
-    background: rgba(10,0,20,.6);
-    border: 1px solid rgba(0,255,249,.1);
+    background: rgba(30,14,30,.6);
+    border: 1px solid rgba(232,93,130,0.25);
     padding: 28px 32px;
     display: flex; flex-direction: column; gap: 20px;
     backdrop-filter: blur(8px);
   }
   .card-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .58rem; letter-spacing: .28em; text-transform: uppercase;
-    color: rgba(0,255,249,.45);
+    font-family: 'VT323', monospace;
+    font-size: 1.08rem; letter-spacing: .28em; text-transform: uppercase;
+    color:rgba(232,93,130,0.45);
   }
 
   /* Stat rows */
@@ -287,36 +281,36 @@
   }
   .stat-row:last-child { border-bottom: none; }
   .stat-key {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .62rem; letter-spacing: .12em; color: rgba(224,224,255,.3);
+    font-family: 'VT323', monospace;
+    font-size: 1.12rem; letter-spacing: .12em; color: rgba(245,205,210,0.55);
   }
   .stat-val {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .7rem; letter-spacing: .08em; color: rgba(224,224,255,.8);
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem; letter-spacing: .08em; color: rgba(245,205,210,0.8);
   }
-  .email-val { font-size: .6rem; color: rgba(224,224,255,.5); }
-  .val-cyan   { color: var(--neon-cyan);   text-shadow: 0 0 6px var(--neon-cyan); }
-  .val-yellow { color: var(--neon-yellow); text-shadow: 0 0 6px var(--neon-yellow); }
+  .email-val { font-size: 1.1rem; color: rgba(245,205,210,0.75); }
+  .val-cyan   { color: var(--neon-cyan);    }
+  .val-yellow { color: var(--neon-yellow);  }
 
   /* Superlike card */
-  .card-superlike { border-color: rgba(255,230,0,.12); background: rgba(255,230,0,.02); }
+  .card-superlike { border-color: rgba(240,137,158,0.27); background: rgba(240,137,158,0.17); }
   .superlike-display { display: flex; align-items: baseline; gap: 10px; }
   .superlike-count {
-    font-family: 'Bebas Neue', sans-serif; font-size: 4rem; line-height: 1;
-    color: var(--neon-yellow); text-shadow: 0 0 24px var(--neon-yellow);
+    font-family: 'Press Start 2P', sans-serif; font-size: 2.6rem; line-height: 1;
+    color: var(--neon-yellow); 
   }
   .superlike-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .65rem; letter-spacing: .15em; color: rgba(255,230,0,.5);
+    font-family: 'VT323', monospace;
+    font-size: 1.15rem; letter-spacing: .15em; color: rgba(240,137,158,0.5);
   }
   .superlike-pips { display: flex; gap: 8px; }
   .pip { font-size: 1.4rem; transition: opacity .2s; }
-  .pip-on  { opacity: 1; filter: drop-shadow(0 0 6px var(--neon-yellow)); }
+  .pip-on  { opacity: 1; filter: ); }
   .pip-off { opacity: .15; filter: grayscale(1); }
   .superlike-hint {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .57rem; letter-spacing: .08em; line-height: 1.6;
-    color: rgba(224,224,255,.22); margin: 0;
+    font-family: 'VT323', monospace;
+    font-size: 1.07rem; letter-spacing: .08em; line-height: 1.6;
+    color: rgba(245,205,210,0.47); margin: 0;
   }
 
   /* Action list */
@@ -327,33 +321,33 @@
     border: 1px solid rgba(255,255,255,.05);
     background: rgba(255,255,255,.02);
     transition: border-color .25s, background .25s, transform .2s;
-    cursor: none;
+    cursor: var(--cursor-pointer);
   }
   .action-item:hover {
-    border-color: rgba(0,255,249,.2);
-    background: rgba(0,255,249,.04);
+    border-color: rgba(232,93,130,0.35);
+    background: rgba(232,93,130,0.19);
     transform: translateX(4px);
   }
   .action-item--admin:hover {
-    border-color: rgba(255,0,110,.2);
-    background: rgba(255,0,110,.04);
+    border-color: rgba(124,77,191,0.35);
+    background: rgba(124,77,191,0.19);
   }
   .action-icon {
-    font-size: 1.2rem; color: rgba(0,255,249,.5);
+    font-size: 1.2rem; color: rgba(232,93,130,0.5);
     flex-shrink: 0; width: 24px; text-align: center;
   }
-  .action-item--admin .action-icon { color: rgba(255,0,110,.5); }
+  .action-item--admin .action-icon { color: rgba(124,77,191,0.5); }
   .action-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
   .action-title {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .7rem; letter-spacing: .1em; color: rgba(224,224,255,.8);
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem; letter-spacing: .1em; color: rgba(245,205,210,0.8);
   }
   .action-sub {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .56rem; letter-spacing: .06em; color: rgba(224,224,255,.3);
+    font-family: 'VT323', monospace;
+    font-size: 1.06rem; letter-spacing: .06em; color: rgba(245,205,210,0.55);
   }
   .action-arrow {
-    font-size: .8rem; color: rgba(0,255,249,.3);
+    font-size: 1.3rem; color: rgba(232,93,130,0.45);
     transition: color .2s, transform .2s; flex-shrink: 0;
   }
   .action-item:hover .action-arrow { color: var(--neon-cyan); transform: translateX(3px); }
@@ -369,25 +363,25 @@
   .locked-icon { font-size: 1.8rem; flex-shrink: 0; opacity: .4; }
   .locked-body { display: flex; flex-direction: column; gap: 6px; }
   .locked-title {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .72rem; letter-spacing: .12em; color: rgba(224,224,255,.5);
+    font-family: 'VT323', monospace;
+    font-size: 1.22rem; letter-spacing: .12em; color: rgba(245,205,210,0.75);
   }
   .locked-sub {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .6rem; letter-spacing: .05em; line-height: 1.7;
-    color: rgba(224,224,255,.25);
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem; letter-spacing: .05em; line-height: 1.7;
+    color: rgba(245,205,210,0.5);
   }
   .btn-locked {
     display: flex; align-items: center; justify-content: space-between;
     width: 100%; padding: 12px 18px;
     background: transparent; border: 1px solid rgba(255,255,255,.08);
-    color: rgba(224,224,255,.2);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: .62rem; letter-spacing: .18em; text-transform: uppercase;
+    color: rgba(245,205,210,0.45);
+    font-family: 'VT323', monospace;
+    font-size: 1.12rem; letter-spacing: .18em; text-transform: uppercase;
     cursor: not-allowed;
   }
   .btn-tag {
-    font-size: .52rem; letter-spacing: .12em; color: rgba(224,224,255,.15);
+    font-size: 1.02rem; letter-spacing: .12em; color: rgba(245,205,210,0.4);
   }
 
   @media (max-width: 900px) {

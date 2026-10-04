@@ -154,49 +154,49 @@
 
 <style>
   .page-header { margin-bottom:32px; }
-  .page-eyebrow { font-family:'Share Tech Mono',monospace; font-size:.62rem; letter-spacing:.3em; text-transform:uppercase; color:var(--neon-pink); text-shadow:0 0 8px var(--neon-pink); margin-bottom:10px; }
-  .page-title { font-family:'Bebas Neue',sans-serif; font-size:4rem; letter-spacing:.05em; line-height:1; }
-  .page-title span { color:var(--neon-cyan); text-shadow:0 0 20px var(--neon-cyan); }
+  .page-eyebrow { font-family:'VT323',monospace; font-size:1.12rem; letter-spacing:.3em; text-transform:uppercase; color:var(--gold);  margin-bottom:10px; }
+  .page-title { font-family:'Press Start 2P',sans-serif; font-size: 2.6rem; letter-spacing:.05em; line-height:1; }
+  .page-title span { color:var(--neon-cyan);  }
 
   .filter-row { display:flex; gap:8px; margin-bottom:24px; }
-  .filter-btn { font-family:'Share Tech Mono',monospace; font-size:.58rem; letter-spacing:.15em; text-transform:uppercase; padding:6px 18px; background:transparent; border:1px solid rgba(224,224,255,.1); color:rgba(224,224,255,.35); cursor:none; transition:all .2s; }
-  .filter-btn.active { color:var(--neon-cyan); border-color:var(--neon-cyan); background:rgba(0,255,249,.06); }
-  .filter-btn:hover:not(.active) { color:rgba(224,224,255,.6); border-color:rgba(224,224,255,.2); }
+  .filter-btn { font-family:'VT323',monospace; font-size:1.08rem; letter-spacing:.15em; text-transform:uppercase; padding:6px 18px; background:transparent; border:1px solid rgba(245,205,210,0.35); color:rgba(245,205,210,0.6); cursor: var(--cursor-pointer); transition:all .2s; }
+  .filter-btn.active { color:var(--neon-cyan); border-color:var(--neon-cyan); background:rgba(232,93,130,0.21); }
+  .filter-btn:hover:not(.active) { color:rgba(245,205,210,0.7); border-color:rgba(245,205,210,0.45); }
 
-  .empty-state { font-family:'Share Tech Mono',monospace; font-size:.65rem; letter-spacing:.15em; color:rgba(0,255,249,.3); text-align:center; padding:80px 0; }
+  .empty-state { font-family:'VT323',monospace; font-size:1.15rem; letter-spacing:.15em; color:rgba(232,93,130,0.45); text-align:center; padding:80px 0; }
 
-  .table-wrap { border:1px solid rgba(0,255,249,.12); background:rgba(10,0,24,.6); }
+  .table-wrap { border:1px solid rgba(232,93,130,0.27); background:rgba(30,14,30,.6); }
   table { width:100%; border-collapse:collapse; }
-  th { font-family:'Share Tech Mono',monospace; font-size:.57rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(224,224,255,.3); text-align:left; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,.06); }
-  td { font-family:'Share Tech Mono',monospace; font-size:.63rem; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,.04); color:rgba(224,224,255,.7); letter-spacing:.04em; }
-  .clickable-row { cursor:none; transition:background .15s; }
-  .clickable-row:hover td { background:rgba(0,255,249,.04); }
+  th { font-family:'VT323',monospace; font-size:1.07rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(245,205,210,0.55); text-align:left; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,.06); }
+  td { font-family:'VT323',monospace; font-size:1.13rem; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,.04); color:rgba(245,205,210,0.8); letter-spacing:.04em; }
+  .clickable-row { cursor: var(--cursor-pointer); transition:background .15s; }
+  .clickable-row:hover td { background:rgba(232,93,130,0.19); }
   .clickable-row:last-child td { border-bottom:none; }
   .clickable-row.deactivated td { opacity:.45; }
 
   .game-cell { display:flex; align-items:center; gap:12px; }
-  .game-thumb { width:36px; height:36px; background:linear-gradient(135deg,#0a0020,#2a0060); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; border:1px solid rgba(191,0,255,.2); overflow:hidden; }
+  .game-thumb { width:36px; height:36px; background:linear-gradient(135deg,#1E0E1E,#341F3A); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; border:1px solid rgba(124,77,191,0.35); overflow:hidden; }
   .game-thumb img { width:100%; height:100%; object-fit:cover; }
-  .game-title { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:.06em; color:rgba(224,224,255,.9); }
-  .game-url { font-family:'Share Tech Mono',monospace; font-size:.52rem; color:rgba(0,255,249,.4); text-decoration:none; display:block; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .game-title { font-family:'Press Start 2P',sans-serif; font-size:1rem; letter-spacing:.06em; color:rgba(245,205,210,0.9); }
+  .game-url { font-family:'VT323',monospace; font-size:1.02rem; color:rgba(232,93,130,0.4); text-decoration:none; display:block; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .game-url:hover { color:var(--neon-cyan); }
 
   .tags-row { display:flex; flex-wrap:wrap; gap:4px; }
-  .tag { font-family:'Share Tech Mono',monospace; font-size:.48rem; letter-spacing:.1em; padding:2px 8px; text-transform:uppercase; background:rgba(191,0,255,.1); border:1px solid rgba(191,0,255,.3); color:var(--neon-purple); }
-  .tag-more { font-family:'Share Tech Mono',monospace; font-size:.48rem; color:rgba(224,224,255,.3); padding:2px 4px; }
+  .tag { font-family:'VT323',monospace; font-size:0.98rem; letter-spacing:.1em; padding:2px 8px; text-transform:uppercase; background:rgba(124,77,191,0.25); border:1px solid rgba(124,77,191,0.45); color:var(--neon-purple); }
+  .tag-more { font-family:'VT323',monospace; font-size:0.98rem; color:rgba(245,205,210,0.55); padding:2px 4px; }
 
-  .badge { font-family:'Share Tech Mono',monospace; font-size:.52rem; letter-spacing:.12em; padding:3px 10px; text-transform:uppercase; display:inline-block; }
-  .badge-active { background:rgba(0,255,100,.08); border:1px solid rgba(0,255,100,.25); color:#00ff64; }
-  .badge-deactivated { background:rgba(255,0,110,.08); border:1px solid rgba(255,0,110,.25); color:var(--neon-pink); }
+  .badge { font-family:'VT323',monospace; font-size:1.02rem; letter-spacing:.12em; padding:3px 10px; text-transform:uppercase; display:inline-block; }
+  .badge-active { background:rgba(143,191,139,.08); border:1px solid rgba(143,191,139,.25); color:#8FBF8B; }
+  .badge-deactivated { background:rgba(124,77,191,0.23); border:1px solid rgba(124,77,191,0.4); color:var(--neon-pink); }
 
-  .btn-sm { font-family:'Share Tech Mono',monospace; font-size:.55rem; letter-spacing:.12em; text-transform:uppercase; padding:5px 14px; cursor:none; border:none; transition:all .2s; }
+  .btn-sm { font-family:'VT323',monospace; font-size:1.05rem; letter-spacing:.12em; text-transform:uppercase; padding:5px 14px; cursor: var(--cursor-pointer); border:none; transition:all .2s; }
   .btn-sm:disabled { opacity:.4; }
-  .btn-reject { background:rgba(255,0,110,.08); color:var(--neon-pink); border:1px solid rgba(255,0,110,.25); }
-  .btn-reject:hover:not(:disabled) { background:rgba(255,0,110,.18); }
-  .btn-approve { background:rgba(0,255,100,.08); color:#00ff64; border:1px solid rgba(0,255,100,.25); }
-  .btn-approve:hover:not(:disabled) { background:rgba(0,255,100,.18); }
+  .btn-reject { background:rgba(124,77,191,0.23); color:var(--neon-pink); border:1px solid rgba(124,77,191,0.4); }
+  .btn-reject:hover:not(:disabled) { background:rgba(124,77,191,0.33); }
+  .btn-approve { background:rgba(143,191,139,.08); color:#8FBF8B; border:1px solid rgba(143,191,139,.25); }
+  .btn-approve:hover:not(:disabled) { background:rgba(143,191,139,.18); }
 
   .pagination { display:flex; justify-content:center; margin-top:32px; }
-  .btn-load-more { font-family:'Share Tech Mono',monospace; font-size:.62rem; letter-spacing:.15em; text-transform:uppercase; color:var(--neon-cyan); text-decoration:none; border:1px solid rgba(0,255,249,.3); padding:10px 28px; transition:all .2s; }
-  .btn-load-more:hover { background:rgba(0,255,249,.06); }
+  .btn-load-more { font-family:'VT323',monospace; font-size:1.12rem; letter-spacing:.15em; text-transform:uppercase; color:var(--neon-cyan); text-decoration:none; border:1px solid rgba(232,93,130,0.45); padding:10px 28px; transition:all .2s; }
+  .btn-load-more:hover { background:rgba(232,93,130,0.21); }
 </style>
