@@ -1,0 +1,42 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Flappy Bird</title>
+<style>
+html,body{margin:0;height:100%;background:#1e0e1e;display:flex;align-items:center;justify-content:center}
+canvas{height:min(100vh,calc(100vw*1.5));aspect-ratio:2/3;background:#12091a;border-radius:8px;touch-action:none}
+</style>
+<canvas id=c width=360 height=540></canvas>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d'),W=360,H=540,GAP=140,BX=80;
+let by,vy,pipes,score,best=0,state,t;
+function init(){by=H/2;vy=0;pipes=[];score=0;t=0;state='ready'}
+function flap(){
+  if(state=='over'){init();return}
+  if(state=='ready')state='play';
+  vy=-6.2;
+}
+function step(){
+  if(state!='play')return;
+  vy+=.34;by+=vy;t++;
+  if(t%90==1)pipes.push({x:W,top:60+Math.random()*(H-GAP-120),passed:false});
+  pipes.forEach(p=>{
+    p.x-=2.6;
+    if(!p.passed&&p.x+50<BX){p.passed=true;score++;best=Math.max(best,score)}
+    if(BX+12>p.x&&BX-12<p.x+50&&(by-12<p.top||by+12>p.top+GAP))state='over';
+  });
+  pipes=pipes.filter(p=>p.x>-60);
+  if(by>H-12||by<-20)state='over';
+}
+function draw(){
+  x.fillStyle='#12091a';x.fillRect(0,0,W,H);
+  x.fillStyle='#7c4dbf';
+  pipes.forEach(p=>{x.fillRect(p.x,0,50,p.top);x.fillRect(p.x,p.top+GAP,50,H)});
+  x.fillStyle='#e85d82';x.beginPath();x.arc(BX,by,12,0,7);x.fill();
+  x.fillStyle='#f5cdd2';x.textAlign='center';x.font='36px monospace';x.fillText(score,W/2,60);
+  x.font='18px monospace';
+  if(state=='ready')x.fillText('Tap / Space to flap',W/2,H/2+60);
+  if(state=='over'){x.fillText('Game over  best '+best,W/2,H/2);x.fillText('Tap to retry',W/2,H/2+30)}
+}
+function loop(){step();draw();requestAnimationFrame(loop)}
+addEventListener('keydown',e=>{if(e.key==' '||e.key=='ArrowUp'){e.preventDefault();flap()}});
+c.addEventListener('pointerdown',flap);
+init();loop();
+</script>

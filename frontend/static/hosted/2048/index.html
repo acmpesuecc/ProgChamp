@@ -1,0 +1,40 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>2048</title>
+<style>
+html,body{margin:0;height:100%;background:#1e0e1e;color:#f5cdd2;font-family:monospace;display:flex;align-items:center;justify-content:center;touch-action:none}
+#w{width:min(92vmin,420px)}
+#top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+b{font-size:1.3em}
+button{background:#7c4dbf;border:0;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit}
+#b{position:relative}
+#g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#3a1f3a;padding:8px;border-radius:10px;aspect-ratio:1}
+.c{display:flex;align-items:center;justify-content:center;border-radius:6px;background:#4b2a4b;font-weight:bold;font-size:clamp(16px,7vmin,34px);color:#fff}
+#o{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(30,14,30,.85);border-radius:10px;font-size:2em}
+</style>
+<div id=w><div id=top><b>2048</b><span>Score <b id=s>0</b></span><button onclick=init()>New</button></div>
+<div id=b><div id=g></div><div id=o>Game over</div></div></div>
+<script>
+let b,s;
+const $=id=>document.getElementById(id);
+function init(){b=Array(16).fill(0);s=0;add();add();draw();$('o').style.display='none'}
+function add(){const e=b.map((v,i)=>v?-1:i).filter(i=>i>=0);if(e.length)b[e[Math.random()*e.length|0]]=Math.random()<.9?2:4}
+function slide(l){const a=l.filter(x=>x),r=[];for(let i=0;i<a.length;i++){if(a[i]==a[i+1]){r.push(a[i]*2);s+=a[i]*2;i++}else r.push(a[i])}while(r.length<4)r.push(0);return r}
+function move(d){ // 0 left,1 up,2 right,3 down
+  const old=b.join();
+  for(let i=0;i<4;i++){
+    const idx=[0,1,2,3].map(j=>d==0?i*4+j:d==2?i*4+3-j:d==1?j*4+i:(3-j)*4+i);
+    const r=slide(idx.map(k=>b[k]));idx.forEach((k,j)=>b[k]=r[j]);
+  }
+  if(b.join()!=old){add();draw()}
+}
+function dead(){if(b.includes(0))return false;for(let i=0;i<16;i++){if(i%4<3&&b[i]==b[i+1])return false;if(i<12&&b[i]==b[i+4])return false}return true}
+function draw(){
+  $('s').textContent=s;
+  $('g').innerHTML=b.map(v=>{const l=v?Math.log2(v):0;return `<div class=c style="${v?`background:hsl(${330-l*22},55%,${58-l*2}%)`:''}">${v||''}</div>`}).join('');
+  if(dead())$('o').style.display='flex';
+}
+addEventListener('keydown',e=>{const d={ArrowLeft:0,ArrowUp:1,ArrowRight:2,ArrowDown:3,a:0,w:1,d:2,s:3}[e.key];if(d!==undefined){e.preventDefault();move(d)}});
+let tx,ty;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY});
+addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.max(Math.abs(dx),Math.abs(dy))<30)return;move(Math.abs(dx)>Math.abs(dy)?(dx<0?0:2):(dy<0?1:3))});
+init();
+</script>
