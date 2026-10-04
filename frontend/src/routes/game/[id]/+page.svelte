@@ -16,7 +16,7 @@
   let { data } = $props();
 
   // Game comes from server load — no client fetch needed for initial data
-  let game = $state<any>(data.game);
+  let game = $derived<any>(data.game);
 
   // LOGIN MODAL STATE
   let showLogin = $state(false);
@@ -27,9 +27,9 @@
   }
 
   // REACTION STATE — optimistic UI
-  let likes          = $state(game?.countLikes      ?? 0);
-  let dislikes       = $state(game?.countDislikes   ?? 0);
-  let superlikes     = $state(game?.countSuperlikes ?? 0);
+  let likes          = $state(0);
+  let dislikes       = $state(0);
+  let superlikes     = $state(0);
   let userReaction   = $state<'like' | 'dislike' | null>(null);
   let userSuperliked = $state(false);
   let reactionLoaded = $state(false);
@@ -39,30 +39,43 @@
   let iframeWrap: HTMLDivElement | undefined = $state();
 
   // SIDEBAR STATE
-  let sidebarGames  = $state<any[]>([]);
 
+  // SIDEBAR STATE
+  let allGames = $state<any[]>([]);
+  let sidebarGames = $derived(
+    allGames.filter((g: any) => g.id !== game?.id).slice(0, 6)
+  );
+
+  // Fetch the list once; the filter above re-runs automatically per game
   onMount(async () => {
-    // Fetch current user's reaction for this game
-    if (isLoggedIn && game?.id) {
-      try {
-        const res = await fetch(`/api/games/${game.id}/reaction`);
-        if (res.ok) {
-          const d = await res.json();
-          userReaction   = d.reaction   ?? null;
-          userSuperliked = d.superliked ?? false;
-        }
-      } catch {}
-      reactionLoaded = true;
-    }
-
-    // Fetch sidebar games (a few recent ones, excluding current)
     try {
       const res = await fetch(`/api/games?limit=8`);
-      if (res.ok) {
-        const d = await res.json();
-        sidebarGames = (d.games ?? []).filter((g: any) => g.id !== game?.id).slice(0, 6);
-      }
+      if (res.ok) allGames = (await res.json()).games ?? [];
     } catch {}
+  });
+
+  // Runs on first load AND every time you navigate to another game
+  $effect(() => {
+    const g = game;
+    likes          = g?.countLikes      ?? 0;
+    dislikes       = g?.countDislikes   ?? 0;
+    superlikes     = g?.countSuperlikes ?? 0;
+    userReaction   = null;
+    userSuperliked = false;
+    reactionLoaded = false;
+
+    if (isLoggedIn && g?.id) {
+      fetch(`/api/games/${g.id}/reaction`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (d && g.id === game?.id) {   // ignore stale responses
+            userReaction   = d.reaction   ?? null;
+            userSuperliked = d.superliked ?? false;
+          }
+          reactionLoaded = true;
+        })
+        .catch(() => {});
+    }
   });
 
   async function react(type: 'like' | 'dislike') {
@@ -171,12 +184,14 @@
     <div class="player-wrap" bind:this={iframeWrap}>
       <div class="player-corner tl"></div>
       <div class="player-corner br"></div>
+      {#key game.id}
       <iframe
         src={game.gameUrl}
         title={game.title}
         class="game-frame"
         allowfullscreen
       ></iframe>
+      {/key}
       <div class="player-scanline"></div>
       <button class="fullscreen-btn" onclick={toggleFullscreen} title="Fullscreen">
         {isFullscreen ? '⤡' : '⤢'}
