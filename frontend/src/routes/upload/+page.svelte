@@ -31,7 +31,6 @@
   let title        = $state('');
   let description  = $state('');
   let url          = $state('');
-  let genre        = $state('');
   let thumbnail    = $state<File | null>(null);
   let preview      = $state<string | null>(null);
   let isDragging   = $state(false);
@@ -40,8 +39,6 @@
 
  
   let errorMessage = $state<string | null>(null);
-
-  const genres = ['Action RPG', 'Shooter', 'Racing', 'Strategy', 'Arcade', 'Space Sim', 'Survival', 'Horror', 'Fighting', 'Puzzle'];
 
   // FILE HANDLING
   function handleFile(file: File) {
@@ -72,12 +69,35 @@
     video = file;
     videoPreview = file.name;
   }
+  // TAGS
+  let selectedTagIds = $state<string[]>([]);
+  let tagsOpen       = $state(false);
+  let tagDropdown    = $state<HTMLDivElement | null>(null);
+  
+  let availableTags = $derived<{ id: string; name: string }[]>(page.data.tags ?? []);
+  let selectedTags  = $derived(availableTags.filter((t) => selectedTagIds.includes(t.id)));
+  
+  function removeTag(id: string) {
+    selectedTagIds = selectedTagIds.filter((t) => t !== id);
+  }
+  
+  // close the dropdown on outside click / Escape
+  function handleWindowClick(e: MouseEvent) {
+    if (tagsOpen && tagDropdown && !tagDropdown.contains(e.target as Node)) tagsOpen = false;
+  }
+  function handleWindowKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') tagsOpen = false;
+  }
+
+  let dropzone = $state<HTMLDivElement | null>(null);
 </script>
 
 <svelte:head>
   <title>UPLOAD // PROGCHAMP</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Pixelify+Sans:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet" />
 </svelte:head>
+
+<svelte:window onclick={handleWindowClick} onkeydown={handleWindowKeydown} />
 
 <!-- NAV -->
 <Navbar
@@ -112,7 +132,6 @@
         enctype="multipart/form-data"
         class="upload-form"
         use:enhance={({ formData }) => {
-          if (genre) formData.append('genre', genre);
           // Prepend https:// to url if not already present
           const rawUrl = formData.get('gameUrl') as string;
           if (rawUrl && !rawUrl.startsWith('http')) {
@@ -128,6 +147,7 @@
               submitted = true;
               setTimeout(() => {
                 submitted = title = description = url = genre = '';
+                selectedTagIds = [];
                 thumbnail = preview = null;
                 video = videoPreview = null;
               }, 3000);
@@ -152,13 +172,41 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="genre">GENRE</label>
-          <select id="genre" class="form-input form-select" bind:value={genre}>
-            <option value="" disabled selected>SELECT A GENRE...</option>
-            {#each genres as g}
-              <option value={g}>{g.toUpperCase()}</option>
-            {/each}
-          </select>
+          <span class="form-label" id="tags-label">TAGS</span>
+        
+          <div class="tag-dropdown" bind:this={tagDropdown}>
+            <button
+              type="button"
+              class="form-input form-select tag-trigger"
+              aria-expanded={tagsOpen}
+              aria-labelledby="tags-label"
+              onclick={() => (tagsOpen = !tagsOpen)}
+            >
+              {selectedTags.length ? `${selectedTags.length} SELECTED` : 'SELECT TAGS...'}
+            </button>
+        
+            <div class="tag-panel" class:open={tagsOpen}>
+              {#each availableTags as tag (tag.id)}
+                <label class="tag-option">
+                  <input type="checkbox" name="tagIds" value={tag.id} bind:group={selectedTagIds} />
+                  <span>{tag.name.toUpperCase()}</span>
+                </label>
+              {:else}
+                <div class="tag-empty">NO TAGS AVAILABLE</div>
+              {/each}
+            </div>
+          </div>
+        
+          {#if selectedTags.length}
+            <div class="tag-chips">
+              {#each selectedTags as tag (tag.id)}
+                <span class="tag-chip">
+                  {tag.name.toUpperCase()}
+                  <button type="button" aria-label="Remove {tag.name}" onclick={() => removeTag(tag.id)}>✕</button>
+                </span>
+              {/each}
+            </div>
+          {/if}
         </div>
 
         <div class="form-group">
@@ -386,6 +434,29 @@
     color: rgba(232,93,130,0.5); padding: 12px 14px; display: flex; align-items: center; flex-shrink: 0;
     border-radius: 10px;
   }
+  .tag-dropdown { position: relative; }
+  .tag-trigger  { text-align: left; cursor: var(--cursor-pointer); }
+  .tag-panel {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 20;
+    max-height: 260px; overflow-y: auto; padding: 8px;
+    background: #1E0E1E; border: 1px solid rgba(232,93,130,0.3); border-radius: 10px;
+  }
+  .tag-panel.open { display: block; }
+  .tag-option {
+    display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 6px;
+    font-family: 'VT323', monospace; font-size: 1.3rem; letter-spacing: .06em;
+    color: var(--text); cursor: var(--cursor-pointer);
+  }
+  .tag-option:hover { background: rgba(232,93,130,0.18); }
+  .tag-option input { accent-color: var(--neon-cyan); width: 16px; height: 16px; }
+  .tag-empty { font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(245,205,210,0.45); padding: 8px 10px; }
+  .tag-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag-chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 2px 10px; border-radius: 10px;
+    font-family: 'VT323', monospace; font-size: 1.15rem; letter-spacing: .08em;
+    color: var(--neon-cyan); border: 1px solid rgba(0,255,249,0.35); background: rgba(232,93,130,0.18);
+  }
+  .tag-chip button { background: none; border: none; color: inherit; font-family: inherit; cursor: var(--cursor-pointer); }
   .input-prefixed { border-radius: 10px; border-left: none; }
 
   .btn-submit {

@@ -31,11 +31,13 @@
   let loading    = $state(false);
 
   // map raw backend game to display shape
+  type Tag = { id: string; name: string; category: string | null };
+  
   function mapGame(g: any) {
     return {
       id:          g.id,
       title:       g.title,
-      genre:       g.tags?.[0]?.tag?.category ?? g.tags?.[0]?.tag?.name ?? 'Uncategorised',
+      tags:        (g.tags ?? []).map((t: any) => t.tag).filter(Boolean) as Tag[],
       dev:         g.creator?.name ?? 'unknown',
       rating:      g.score ?? 0,
       players:     g.viewCount ?? 0,
@@ -63,7 +65,7 @@
 
   // FILTER / SEARCH STATE
     let searchQuery = $state(page.url.searchParams.get('q') ?? '');
-    let activeGenre = $state('All');
+    let allTags     = $derived<Tag[]>(data.tags ?? []);
     let sortBy      = $state('newest');
   
     function scrollToGames() {
@@ -99,11 +101,11 @@
       globalSearch.set('');
     });
 
-  const genres = ['All', 'Action RPG', 'Shooter', 'Racing', 'Strategy', 'Arcade', 'Space Sim', 'Survival', 'Horror', 'Fighting', 'Puzzle'];
+  let activeTagId = $state<string | null>(null); // null = show all
 
   let filteredGames = $derived(() => {
     let result = mappedGames;
-    if (activeGenre !== 'All') result = result.filter((g: any) => g.genre === activeGenre);
+    if (activeTagId) result = result.filter((g: any) => g.tags.some((t: Tag) => t.id === activeTagId));
     if (searchQuery.trim()) result = result.filter((g: any) =>
       g.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       g.dev.toLowerCase().includes(searchQuery.toLowerCase())
@@ -172,8 +174,13 @@
   </select>
 </div>
 <div class="genre-bar">
-  {#each genres as g}
-    <button class="genre-pill" class:active={activeGenre===g} onclick={() => activeGenre = g}>{g.toUpperCase()}</button>
+  <button class="genre-pill" class:active={activeTagId === null} onclick={() => (activeTagId = null)}>ALL</button>
+  {#each allTags as tag (tag.id)}
+    <button
+      class="genre-pill"
+      class:active={activeTagId === tag.id}
+      onclick={() => (activeTagId = tag.id)}
+    >{tag.name.toUpperCase()}</button>
   {/each}
 </div>
 
@@ -202,7 +209,14 @@
             <div class="game-hover-btn">PLAY NOW</div>
           </div>
           <div class="game-info">
-            <div class="game-genre">{game.genre.toUpperCase()}</div>
+              {#if game.tags.length}
+                <div class="game-tags">
+                  {#each game.tags.slice(0, 3) as tag (tag.id)}
+                    <span class="game-tag">{tag.name.toUpperCase()}</span>
+                  {/each}
+                  {#if game.tags.length > 3}<span class="game-tag more">+{game.tags.length - 3}</span>{/if}
+                </div>
+              {/if}
             <div class="game-title">{game.title}</div>
             <div class="game-meta">
               <span class="game-dev">by {game.dev}</span>
@@ -268,7 +282,9 @@
   .game-hover-btn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'VT323',monospace;font-size:1.2rem;letter-spacing:.2em;color:var(--neon-cyan);opacity:0;transition:opacity .3s;background:rgba(36,19,44,.4);}
   .game-card:hover .game-hover-btn{opacity:1;}
   .game-info{padding:16px 18px 18px;}
-  .game-genre{font-family:'VT323',monospace;font-size:1.08rem;letter-spacing:.2em;color:var(--neon-purple);margin-bottom:6px;}
+  .game-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+  .game-tag{font-family:'VT323',monospace;font-size:1.05rem;letter-spacing:.15em;color:var(--neon-purple);border:1px solid rgba(124,77,191,0.4);padding:0 8px;border-radius:6px;}
+  .game-tag.more{color:rgba(245,205,210,0.55);border-color:rgba(245,205,210,0.25);}
   .game-title{font-family:'Press Start 2P',sans-serif;font-size:1.4rem;letter-spacing:.06em;line-height:1;margin-bottom:8px;}
   .game-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
   .game-dev{font-family:'VT323',monospace;font-size:1.12rem;letter-spacing:.08em;color:rgba(245,205,210,0.55);}

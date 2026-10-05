@@ -74,6 +74,7 @@ gamesRoute.get("/", requireSession, async (c) => {
       with: {
         coverMedia: true,
         tags: { with: { tag: true } },
+        creator: { columns: { id: true, name: true, avatarUrl: true } },
       },
     });
 
@@ -90,6 +91,7 @@ gamesRoute.get("/", requireSession, async (c) => {
     console.error("Get games error:", error);
     return c.json({ error: "Failed to fetch games" }, 500);
   }
+  console.log("[GET /games] first game creator:", results[0]?.creator);
 });
 
 /**

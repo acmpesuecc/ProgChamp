@@ -16,6 +16,7 @@
     <a href="/admin/appeals" class="nav-link">Appeals</a>
     <a href="/admin/users" class="nav-link">Users</a>
     <a href="/admin/games" class="nav-link">Games</a>
+    <a href="/admin/tags" class="nav-link">Tags</a>
     </div>
 
   <div class="nav-badge">⚙ ADMIN PANEL</div>

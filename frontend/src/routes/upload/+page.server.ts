@@ -3,12 +3,15 @@ import type { PageServerLoad, Actions } from './$types';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:9210';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, fetch }) => {
   if (!locals.session?.authenticated) {
     throw redirect(302, '/');
   }
-};
 
+  const res = await fetch(`${API_URL}/tags`);
+  const tags = res.ok ? await res.json() : [];
+  return { tags };
+};
 export const actions: Actions = {
   default: async ({ request, fetch }) => {
     const formData = await request.formData();

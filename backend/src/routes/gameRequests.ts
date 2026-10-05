@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { db } from "../db/index";
-import { gameRequests, games } from "../db/schema";
+import { gameRequests, games, tags, gameRequestTags } from "../db/schema";
 import { requireSession, requireCompleteProfile } from "../lib/middleware";
 import { canUserSubmitRequest } from "../lib/gameRequestService";
 import { nanoid } from "nanoid";
-import { eq, or, lt, and } from "drizzle-orm";
+import { eq, or, lt, and, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { uploadToR2 } from "../lib/r2";
 import { gameMedia } from "../db/schema";
@@ -25,7 +25,7 @@ gameRequestsRoutes.post(
     try {
       const user = c.get("user");
 
-      const body = await c.req.parseBody();
+      const body = await c.req.parseBody({all : true});
 
       const result = gameSubmissionSchema.safeParse({
         title: body.title,
@@ -36,7 +36,7 @@ gameRequestsRoutes.post(
       if (!result.success) {
         return c.json({ error: "Invalid request", details: result.error.format() }, 400);
       }
-
+      
       const allowed = await canUserSubmitRequest(user.id);
       if (!allowed) {
         return c.json({
@@ -45,6 +45,8 @@ gameRequestsRoutes.post(
         }, 429);
       }
 
+      const MAX_TAGS = 4; // Each game can have upto 4 tags
+      
       const { title, gameUrl, description } = result.data;
 
       const existing = await db.query.gameRequests.findFirst({
@@ -94,15 +96,47 @@ gameRequestsRoutes.post(
         return c.json({ success: false, message: "Video must be a video file" }, 400);
       }
 
+      // Checking the tags associated with the game
+      const rawTagIds = body.tagIds;
+      const tagIds = [
+        ...new Set(
+          (Array.isArray(rawTagIds) ? rawTagIds : rawTagIds ? [rawTagIds] : [])
+            .filter((v): v is string => typeof v === "string" && v.length > 0),
+        ),
+      ];
+      
+      if (tagIds.length > MAX_TAGS) {
+        return c.json({ success: false, message: `You can select at most ${MAX_TAGS} tags` }, 400);
+      }
+      
+      if (tagIds.length > 0) {
+        const found = await db
+          .select({ id: tags.id })
+          .from(tags)
+          .where(inArray(tags.id, tagIds));
+      
+        if (found.length !== tagIds.length) {
+          return c.json({ success: false, message: "One or more selected tags no longer exist" }, 400);
+        }
+      }
+
       // Insert game request
-      await db.insert(gameRequests).values({
-        id: requestId,
-        requestType: "new_game",
-        submittedBy: user.id,
-        title,
-        description,
-        gameUrl,
-        status: "pending",
+      await db.transaction(async (tx) => {
+        await tx.insert(gameRequests).values({
+          id: requestId,
+          requestType: "new_game",
+          submittedBy: user.id,
+          title,
+          description,
+          gameUrl,
+          status: "pending",
+        });
+      
+        if (tagIds.length > 0) {
+          await tx.insert(gameRequestTags).values(
+            tagIds.map((tagId) => ({ gameRequestId: requestId, tagId })),
+          );
+        }
       });
 
       // Upload thumbnail to R2 and insert media row
@@ -158,7 +192,7 @@ gameRequestsRoutes.post(
       });
 
     } catch (error) {
-      console.error("An unexpected error occurred", error);
+      console.error("Approve game request error:", error);
       return c.json({ success: false, message: "An unexpected error occurred" }, 500);
     }
   },
