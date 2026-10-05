@@ -351,6 +351,8 @@ export const adminActions = sqliteTable("admin_actions", {
       "approve_game",
       "reject_game",
       "deactivate_game",
+      "reactivate_game",   // added
+      "delete_game",       // added
       "approve_appeal",
       "reject_appeal",
       "ban_user",

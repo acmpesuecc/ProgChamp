@@ -100,6 +100,7 @@ export async function approveGameRequest(id: string, adminId: string) {
         status: "approved",
         reviewedBy: adminId,
         reviewedAt: new Date(),
+        gameId, // link the request to the game it created
       })
       .where(eq(gameRequests.id, id));
 

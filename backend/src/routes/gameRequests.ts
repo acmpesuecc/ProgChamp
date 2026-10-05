@@ -246,6 +246,11 @@ gameRequestsRoutes.get("/my", requireSession, async (c) => {
           tag: true,
         },
       },
+      game: {
+        columns: {
+          id: true, isActive: true
+        }
+      },
     },
   });
 

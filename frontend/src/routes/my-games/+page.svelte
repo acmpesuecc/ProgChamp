@@ -44,26 +44,33 @@
   // map backend request to display shape
   function mapRequest(r: any) {
     return {
-      id:              r.id,
-      title:           r.title,
-      description:     r.description ?? '',
-      genre:           r.tags?.[0]?.tag?.category ?? r.tags?.[0]?.tag?.name ?? 'Uncategorised',
-      url:             r.gameUrl,
-      status:          r.status,
-      adminResponse:   r.adminResponse ?? null,
-      thumbnail:       null, // R2 signed URLs not wired yet
+      id:            r.id,
+      title:         r.title,
+      description:   r.description ?? '',
+      genre:         (r.tags ?? []).map((t: any) => t.tag?.name).filter(Boolean).join(' · ') || 'Uncategorised',
+      url:           r.gameUrl,
+      gameId:        r.game?.id ?? null,
+      gameActive:    r.game?.isActive ?? false,
+      status:        r.status,
+      adminResponse: r.adminResponse ?? null,
+      thumbnail:     null, // R2 signed URLs not wired yet
     };
   }
-
+  
   let mappedRequests = $derived(requests.map(mapRequest));
-  let pending        = $derived(mappedRequests.filter((r: any) => r.status === 'pending'));
-  let approved       = $derived(mappedRequests.filter((r: any) => r.status === 'approved'));
-  let rejected       = $derived(mappedRequests.filter((r: any) => r.status === 'rejected'));
+  
+  // An approved request whose game was deleted has no linked game, so it's hidden
+  let visibleRequests = $derived(mappedRequests.filter((r: any) => r.status !== 'approved' || r.gameId));
+  let pending     = $derived(visibleRequests.filter((r: any) => r.status === 'pending'));
+  let approved    = $derived(visibleRequests.filter((r: any) => r.status === 'approved' && r.gameActive));
+  let deactivated = $derived(visibleRequests.filter((r: any) => r.status === 'approved' && !r.gameActive));
+  let rejected    = $derived(visibleRequests.filter((r: any) => r.status === 'rejected'));
 
   const statusConfig: Record<string, { label: string; color: string; glow: string; icon: string; border: string; bg: string }> = {
     pending:  { label: 'AWAITING REVIEW', color: 'var(--neon-yellow)', glow: 'rgba(240,137,158,0.45)',  icon: '◌', border: 'rgba(240,137,158,0.4)',  bg: 'rgba(240,137,158,0.19)' },
     approved: { label: 'LIVE',            color: 'var(--neon-cyan)',   glow: 'rgba(232,93,130,0.45)',  icon: '◉', border: 'rgba(232,93,130,0.4)',  bg: 'rgba(232,93,130,0.19)' },
     rejected: { label: 'REJECTED',        color: 'var(--neon-pink)',   glow: 'rgba(124,77,191,0.45)',  icon: '✕', border: 'rgba(124,77,191,0.4)',  bg: 'rgba(124,77,191,0.19)' },
+    deactivated: { label: 'DEACTIVATED', color: 'var(--neon-purple)', glow: 'rgba(124,77,191,0.45)', icon: '◍', border: 'rgba(124,77,191,0.4)', bg: 'rgba(124,77,191,0.19)' },
   };
 </script>
 
@@ -174,9 +181,38 @@
                 <div class="card-genre">{(s.genre ?? 'Uncategorised').toUpperCase()}</div>
                 <div class="card-title">{s.title}</div>
                 <div class="card-meta">
-                  <a href={s.url} class="card-url card-url--link">↗ VIEW IN VAULT</a>
+                  <a href="/game/{s.gameId}" class="card-url card-url--link">↗ VIEW IN VAULT</a>
                 </div>
                 <p class="card-desc">{s.description}</p>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </section>
+    {/if}
+
+    {#if deactivated.length > 0}
+      <section class="game-section">
+        <div class="section-header">
+          <div class="section-eyebrow">// HIDDEN</div>
+          <h2 class="section-title">DEACTIVATED <span class="pink">GAMES</span></h2>
+          <p class="section-sub">These were approved but have been deactivated by an admin, so players can't see them.</p>
+        </div>
+        <div class="games-list">
+          {#each deactivated as s}
+            {@const cfg = statusConfig.deactivated}
+            <div class="game-card" style="border-color:{cfg.border};background:{cfg.bg}">
+              <div class="card-thumb">
+                <div class="thumb-placeholder"><span class="thumb-icon" style="color:var(--neon-purple)">◍</span></div>
+                <div class="status-badge" style="color:{cfg.color};border-color:{cfg.border};background:{cfg.bg}">
+                  <span class="status-icon">{cfg.icon}</span> {cfg.label}
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="card-genre">{(s.genre ?? 'Uncategorised').toUpperCase()}</div>
+                <div class="card-title">{s.title}</div>
+                <p class="card-desc">{s.description}</p>
+                <div class="card-notice" style="border-color:{cfg.border};color:{cfg.color}">◍ &nbsp;Hidden from the Vault.</div>
               </div>
             </div>
           {/each}
