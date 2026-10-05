@@ -37,6 +37,28 @@
     await invalidateAll();
   }
 
+  async function deleteGame(e: MouseEvent, gameId: string, title: string) {
+    e.stopPropagation();
+    const reason = prompt(`Permanently delete "${title}"? This cannot be undone.\n\nReason for deletion:`);
+    if (!reason) return;
+  
+    loading = gameId;
+    const res = await fetch(`${API_URL}/admin/game-requests/game/${gameId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ reason }),
+    });
+    loading = null;
+  
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      alert(d.error ?? 'Failed to delete game');
+      return;
+    }
+    await invalidateAll();
+  }
+
   function applyFilter(status: string) {
     const params = new URLSearchParams();
     if (status) params.set('status', status);
@@ -119,23 +141,32 @@
             </td>
             <td>{timeAgo(game.createdAt)}</td>
             <td>
-              {#if game.isActive}
+              <div class="row-actions">
+                {#if game.isActive}
+                  <button
+                    class="btn-sm btn-reject"
+                    disabled={loading === game.id}
+                    onclick={(e) => deactivateGame(e, game.id)}
+                  >
+                    {loading === game.id ? '...' : 'Deactivate'}
+                  </button>
+                {:else}
+                  <button
+                    class="btn-sm btn-approve"
+                    disabled={loading === game.id}
+                    onclick={(e) => reactivateGame(e, game.id)}
+                  >
+                    {loading === game.id ? '...' : 'Reactivate'}
+                  </button>
+                {/if}
                 <button
-                  class="btn-sm btn-reject"
+                  class="btn-sm btn-delete"
                   disabled={loading === game.id}
-                  onclick={(e) => deactivateGame(e, game.id)}
+                  onclick={(e) => deleteGame(e, game.id, game.title)}
                 >
-                  {loading === game.id ? '...' : 'Deactivate'}
+                  {loading === game.id ? '...' : 'Delete'}
                 </button>
-              {:else}
-                <button
-                  class="btn-sm btn-approve"
-                  disabled={loading === game.id}
-                  onclick={(e) => reactivateGame(e, game.id)}
-                >
-                  {loading === game.id ? '...' : 'Reactivate'}
-                </button>
-              {/if}
+              </div>
             </td>
           </tr>
         {/each}
@@ -195,6 +226,9 @@
   .btn-reject:hover:not(:disabled) { background:rgba(124,77,191,0.33); }
   .btn-approve { background:rgba(143,191,139,.08); color:#8FBF8B; border:1px solid rgba(143,191,139,.25); }
   .btn-approve:hover:not(:disabled) { background:rgba(143,191,139,.18); }
+  .row-actions { display:flex; gap:8px; }
+  .btn-delete { background:rgba(255,80,80,.1); color:rgba(255,100,100,.9); border:1px solid rgba(255,80,80,.35); }
+  .btn-delete:hover:not(:disabled) { background:rgba(255,80,80,.2); }
 
   .pagination { display:flex; justify-content:center; margin-top:32px; }
   .btn-load-more { font-family:'VT323',monospace; font-size:1.12rem; letter-spacing:.15em; text-transform:uppercase; color:var(--neon-cyan); text-decoration:none; border:1px solid rgba(232,93,130,0.45); padding:10px 28px; transition:all .2s; }

@@ -32,6 +32,27 @@
     await invalidateAll();
   }
 
+  async function deleteGame() {
+    const reason = prompt(`Permanently delete "${game.title}"? This cannot be undone.\n\nReason for deletion:`);
+    if (!reason) return;
+  
+    loading = 'delete';
+    const res = await fetch(`${API_URL}/admin/game-requests/game/${game.id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ reason }),
+    });
+    loading = null;
+  
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      alert(d.error ?? 'Failed to delete game');
+      return;
+    }
+    await goto('/admin/games');
+  }
+
   function formatDate(date: string | null) {
     if (!date) return '—';
     return new Date(date).toLocaleDateString('en-GB', {
@@ -163,6 +184,13 @@
               {loading === 'reactivate' ? '...' : 'Reactivate Game'}
             </button>
           {/if}
+          <button
+            class="btn-action btn-delete"
+            disabled={loading !== null}
+            onclick={deleteGame}
+          >
+            {loading === 'delete' ? '...' : 'Delete Game'}
+          </button>
         </div>
       </div>
     </div>
@@ -214,6 +242,8 @@
   .btn-approve:hover:not(:disabled) { background:rgba(143,191,139,.2); }
   .btn-reject { background:rgba(124,77,191,0.23); color:var(--neon-pink); border:1px solid rgba(124,77,191,0.4); }
   .btn-reject:hover:not(:disabled) { background:rgba(124,77,191,0.33); }
+  .btn-delete { background:rgba(255,80,80,.1); color:rgba(255,100,100,.9); border:1px solid rgba(255,80,80,.35); }
+  .btn-delete:hover:not(:disabled) { background:rgba(255,80,80,.2); }
 
   .badge { font-family:'VT323',monospace; font-size:1.02rem; letter-spacing:.12em; padding:3px 10px; text-transform:uppercase; display:inline-block; }
   .badge-active { background:rgba(143,191,139,.08); border:1px solid rgba(143,191,139,.25); color:#8FBF8B; }

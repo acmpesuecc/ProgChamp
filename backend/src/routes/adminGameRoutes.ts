@@ -1,8 +1,9 @@
 import { Hono } from "hono";
 import { db } from "../db/index";
-import { gameRequests, userRequests, games, adminActions } from "../db/schema";
+import { gameRequests, userRequests, games, adminActions, gameMedia,
+  gameTags, gameReactions, gameSuperlikes, gameViews, } from "../db/schema";
 import { requireSession, requireAdmin } from "../lib/middleware";
-import { eq, and, lt, or } from "drizzle-orm";
+import { eq, and, lt, or, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import {
   approveGameRequest,
@@ -380,6 +381,94 @@ adminGameRequestRoutes.post(
       return c.json({ error: "Unexpected error" }, 500);
     }
   }
+);
+
+const deleteGameSchema = z.object({
+  reason: z.string().trim().min(1, "Reason is required").max(500),
+});
+
+// Admin permanently deletes a game
+adminGameRequestRoutes.delete(
+  "/game/:id",
+  requireSession,
+  requireAdmin,
+  async (c) => {
+    const admin = c.get("user");
+    const gameId = c.req.param("id");
+
+    const body = await c.req.json().catch(() => null);
+    const parsed = deleteGameSchema.safeParse(body);
+    if (!parsed.success) {
+      return c.json(
+        { error: "Validation failed", details: parsed.error.format() },
+        400,
+      );
+    }
+    const { reason } = parsed.data;
+
+    try {
+      await db.transaction(async (tx) => {
+        const game = await tx.query.games.findFirst({
+          where: eq(games.id, gameId),
+        });
+        if (!game) throw new NotFoundError("Game not found");
+      
+        // media ids for this game (this is where mediaIds comes from)
+        const media = await tx
+          .select({ id: gameMedia.id })
+          .from(gameMedia)
+          .where(eq(gameMedia.gameId, gameId));
+        const mediaIds = media.map((m) => m.id);
+      
+        // 1. Rows that only make sense with the game: delete them
+        await tx.delete(gameReactions).where(eq(gameReactions.gameId, gameId));
+        await tx.delete(gameSuperlikes).where(eq(gameSuperlikes.gameId, gameId));
+        await tx.delete(gameViews).where(eq(gameViews.gameId, gameId));
+        await tx.delete(gameTags).where(eq(gameTags.gameId, gameId));
+      
+        // 2. History rows: keep them, but detach them from the game
+        await tx.update(adminActions).set({ targetGameId: null }).where(eq(adminActions.targetGameId, gameId));
+        await tx.update(gameRequests).set({ gameId: null }).where(eq(gameRequests.gameId, gameId));
+        await tx.update(userRequests).set({ relatedGameId: null }).where(eq(userRequests.relatedGameId, gameId));
+      
+        // 3. Break the pointers between games and media, then delete the media rows
+        await tx.update(games).set({ coverMediaId: null }).where(eq(games.id, gameId));
+        if (mediaIds.length > 0) {
+          // approval copied the cover id onto the original request too
+          await tx
+            .update(gameRequests)
+            .set({ coverMediaId: null })
+            .where(inArray(gameRequests.coverMediaId, mediaIds));
+      
+          await tx.delete(gameMedia).where(inArray(gameMedia.id, mediaIds));
+        }
+      
+        // 4. Delete the game itself
+        await tx.delete(games).where(eq(games.id, gameId));
+      
+        // 5. Audit log. No targetGameId, because that game no longer exists.
+        await tx.insert(adminActions).values({
+          id: `aa_${nanoid(16)}`,
+          adminId: admin.id,
+          actionType: "delete_game",
+          decision: "deleted",
+          notes: `Deleted "${game.title}" (${gameId}), created by ${game.createdBy}. Reason: ${reason}`,
+        });
+      });
+
+      return c.json({ success: true, message: "Game deleted successfully" });
+    } catch (error) {
+      if (error instanceof NotFoundError) return c.json({ error: error.message }, 404);
+      if (error instanceof InvalidStateError) return c.json({ error: error.message }, 400);
+
+      console.error("Delete game error:", error);
+      const detail = String((error as any)?.cause?.message ?? (error as any)?.message ?? "");
+      if (detail.includes("FOREIGN KEY")) {
+        return c.json({ error: "Game is still referenced by other records" }, 409);
+      }
+      return c.json({ error: "Unexpected error" }, 500);
+    }
+  },
 );
 
 export default adminGameRequestRoutes;
