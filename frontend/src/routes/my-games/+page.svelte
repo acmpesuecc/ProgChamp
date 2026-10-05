@@ -166,7 +166,14 @@
         <div class="games-list">
           {#each approved as s}
             {@const cfg = statusConfig.approved}
-            <div class="game-card" style="border-color:{cfg.border};background:{cfg.bg}">
+            <div
+              class="game-card game-card--clickable"
+              role="link"
+              tabindex="0"
+              style="border-color:{cfg.border};background:{cfg.bg}"
+              onclick={() => goto(`/game/${s.gameId}/details`)}
+              onkeydown={(e) => e.target === e.currentTarget && e.key === 'Enter' && goto(`/game/${s.gameId}/details`)}
+            >
               <div class="card-thumb">
                 {#if s.thumbUrl}
                   <img src={s.thumbUrl} alt={s.title} class="thumb-img" />
@@ -181,7 +188,7 @@
                 <div class="card-genre">{(s.genre ?? 'Uncategorised').toUpperCase()}</div>
                 <div class="card-title">{s.title}</div>
                 <div class="card-meta">
-                  <a href="/game/{s.gameId}" class="card-url card-url--link">↗ VIEW IN VAULT</a>
+                  <a href="/game/{s.gameId}" class="card-url card-url--link" onclick={(e) => e.stopPropagation()}>↗ VIEW IN VAULT</a>
                 </div>
                 <p class="card-desc">{s.description}</p>
               </div>
@@ -340,4 +347,5 @@
   .load-more-btn{font-family:'VT323',monospace;font-size:1.2rem;letter-spacing:.2em;color:var(--neon-cyan);border:1px solid rgba(232,93,130,0.45);background:rgba(232,93,130,0.18);padding:14px 40px;cursor: var(--cursor-pointer);transition:all .25s;border-radius: 10px;}
   .load-more-btn:hover:not(:disabled){border-color:var(--neon-cyan);}
   .load-more-btn:disabled{opacity:.4;}
+  .game-card--clickable{cursor: var(--cursor-pointer);}
 </style>
