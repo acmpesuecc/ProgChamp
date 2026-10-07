@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { setCookie, deleteCookie, getCookie } from "hono/cookie";
 import { db } from "../db/index";
-import { users } from "../db/schema";
+import { users, sessions } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import {
@@ -13,7 +13,7 @@ import {
   getGoogleUserInfo,
 } from "../lib/oauth";
 import { createSession, deleteSession, getSession } from "../lib/session";
-import { requireSession } from "../lib/middleware";
+import { requireSession, googleAuthRateLimiter } from "../lib/middleware";
 
 const auth = new Hono();
 
@@ -34,7 +34,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
  * 3. Store verifier and state in httpOnly cookies (short-lived)
  * 4. Redirect to Google OAuth consent screen
  */
-auth.get("/google", async (c) => {
+auth.get("/google", googleAuthRateLimiter, async (c) => {
   try {
     // Generate PKCE parameters
     const codeVerifier = generateCodeVerifier();
@@ -100,17 +100,23 @@ auth.get("/google/callback", async (c) => {
     const state = c.req.query("state");
     const error = c.req.query("error");
 
+    // Read OAuth cookies first, then clear them eagerly so they are never
+    // left behind regardless of which return path is taken below.
+    const storedState = getCookie(c, "oauth_state");
+    const codeVerifier = getCookie(c, "oauth_verifier");
+    deleteCookie(c, "oauth_state");
+    deleteCookie(c, "oauth_verifier");
+
     // Check for OAuth error
     if (error) {
       return c.redirect(`${FRONTEND_URL}/auth/error?error=${error}`);
-    }
+    } 
 
     if (!code || !state) {
       return c.json({ error: "Missing code or state parameter" }, 400);
     }
 
     // Validate state (CSRF protection)
-    const storedState = getCookie(c, "oauth_state");
     if (!storedState || storedState !== state) {
       return c.json(
         {
@@ -121,8 +127,7 @@ auth.get("/google/callback", async (c) => {
       );
     }
 
-    // Retrieve code verifier
-    const codeVerifier = getCookie(c, "oauth_verifier");
+    // Validate code verifier
     if (!codeVerifier) {
       return c.json(
         {
@@ -132,10 +137,6 @@ auth.get("/google/callback", async (c) => {
         400,
       );
     }
-
-    // Clear OAuth cookies
-    deleteCookie(c, "oauth_state");
-    deleteCookie(c, "oauth_verifier");
 
     // Exchange code for tokens
     const tokens = await exchangeCodeForTokens(
@@ -223,14 +224,23 @@ auth.get("/google/callback", async (c) => {
     }
 
     // Create session
-    const session = await createSession(user.id, 7); // 7 days
+    const SESSION_DURATION_DAYS = 7;
+    // Delete all existing sessions for this user before creating a new one
+    await db.delete(sessions).where(eq(sessions.userId, user.id));
+    const session = await createSession(user.id, SESSION_DURATION_DAYS);
+
+    // Derive cookie maxAge from the session's own expiresAt so the two
+    // can never drift if the duration constant is changed in one place.
+    const maxAge = Math.floor(
+      (session.expiresAt.getTime() - Date.now()) / 1000,
+    );
 
     // Set session cookie
     setCookie(c, "session_id", session.id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "Lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge,
       path: "/",
     });
 
@@ -240,7 +250,7 @@ auth.get("/google/callback", async (c) => {
       return c.redirect(`${FRONTEND_URL}/profile/setup`);
     } else {
       // Returning user with complete profile -> home
-      return c.redirect(`${FRONTEND_URL}/home`);
+      return c.redirect(`${FRONTEND_URL}/`);
     }
   } catch (error) {
     console.error("OAuth callback error:", error);
@@ -290,7 +300,7 @@ auth.get("/session", async (c) => {
         needsProfileSetup: false,
       });
     }
-    console.log(sessionId);
+
     return c.json({
       authenticated: true,
       needsProfileSetup: !user.profileCompletedAt,

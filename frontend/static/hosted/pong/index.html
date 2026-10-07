@@ -1,0 +1,43 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Pong</title>
+<style>
+html,body{margin:0;height:100%;background:#1e0e1e;display:flex;align-items:center;justify-content:center}
+canvas{width:min(100vw,calc(100vh*1.6));aspect-ratio:8/5;background:#12091a;border-radius:8px;touch-action:none}
+</style>
+<canvas id=c width=640 height=400></canvas>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d'),W=640,H=400,PH=70,WIN=7;
+let py,ay,bx,by,vx,vy,ps,as,run;
+function reset(dir){bx=W/2;by=H/2;vx=4.5*dir;vy=(Math.random()*4-2)}
+function init(){py=ay=H/2-PH/2;ps=as=0;reset(1);run=false}
+function step(){
+  if(!run)return;
+  const t=by-PH/2;ay+=Math.max(-3.2,Math.min(3.2,t-ay));ay=Math.max(0,Math.min(H-PH,ay));
+  bx+=vx;by+=vy;
+  if(by<6||by>H-6)vy=-vy;
+  if(vx<0&&bx<26&&bx>14&&by>py&&by<py+PH){vx=-vx*1.06;vy+=(by-(py+PH/2))*.12}
+  if(vx>0&&bx>W-26&&bx<W-14&&by>ay&&by<ay+PH){vx=-vx*1.06;vy+=(by-(ay+PH/2))*.12}
+  if(bx<0){as++;reset(1)}
+  if(bx>W){ps++;reset(-1)}
+  if(ps>=WIN||as>=WIN)run=false;
+}
+function draw(){
+  x.fillStyle='#12091a';x.fillRect(0,0,W,H);
+  x.fillStyle='#4b2a4b';for(let i=0;i<H;i+=24)x.fillRect(W/2-2,i,4,12);
+  x.fillStyle='#e85d82';x.fillRect(14,py,10,PH);
+  x.fillStyle='#7c4dbf';x.fillRect(W-24,ay,10,PH);
+  x.fillStyle='#f5cdd2';x.fillRect(bx-6,by-6,12,12);
+  x.font='32px monospace';x.textAlign='center';x.fillText(ps,W/2-60,44);x.fillText(as,W/2+60,44);
+  if(!run){x.font='20px monospace';x.fillText(ps>=WIN?'You win! Click to replay':as>=WIN?'CPU wins. Click to replay':'Click or press Space to start',W/2,H-30)}
+}
+function loop(){step();draw();requestAnimationFrame(loop)}
+function start(){if(ps>=WIN||as>=WIN)init();run=true}
+c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect();py=Math.max(0,Math.min(H-PH,(e.clientY-r.top)*H/r.height-PH/2))});
+c.addEventListener('touchmove',e=>{e.preventDefault();const r=c.getBoundingClientRect();py=Math.max(0,Math.min(H-PH,(e.touches[0].clientY-r.top)*H/r.height-PH/2))},{passive:false});
+c.addEventListener('click',start);
+addEventListener('keydown',e=>{
+  if(e.key==' '){e.preventDefault();start()}
+  if(e.key=='ArrowUp'||e.key=='w'){e.preventDefault();py=Math.max(0,py-28)}
+  if(e.key=='ArrowDown'||e.key=='s'){e.preventDefault();py=Math.min(H-PH,py+28)}
+});
+init();loop();
+</script>

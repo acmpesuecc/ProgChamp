@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl as awsGetSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Environment variables
@@ -45,6 +45,10 @@ export async function uploadToR2(
  * @returns Signed URL
  */
 export async function getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+  const exists = await fileExistsInR2(key);
+  if (!exists) {
+    throw new Error(`File not found in R2: ${key}`);
+  }
   const command = new GetObjectCommand({
     Bucket: R2_BUCKET_NAME,
     Key: key,
@@ -74,7 +78,7 @@ export async function deleteFromR2(key: string): Promise<void> {
  */
 export async function fileExistsInR2(key: string): Promise<boolean> {
   try {
-    const command = new GetObjectCommand({
+    const command = new HeadObjectCommand({
       Bucket: R2_BUCKET_NAME,
       Key: key,
     });

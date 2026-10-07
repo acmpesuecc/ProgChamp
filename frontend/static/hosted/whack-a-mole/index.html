@@ -1,0 +1,33 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Whack-a-Mole</title>
+<style>
+html,body{margin:0;height:100%;background:#1e0e1e;color:#f5cdd2;font-family:monospace;display:flex;align-items:center;justify-content:center;user-select:none}
+#w{width:min(92vmin,420px);text-align:center}
+#top{display:flex;justify-content:space-between;margin-bottom:10px;font-size:1.1em}
+#g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.h{aspect-ratio:1;background:#3a1f3a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,12vmin,56px);cursor:pointer}
+.h.up{background:#7c4dbf}
+button{margin-top:14px;background:#e85d82;border:0;color:#fff;padding:10px 22px;border-radius:8px;cursor:pointer;font:inherit}
+</style>
+<div id=w><div id=top><span>Score <b id=s>0</b></span><span>Best <b id=b>0</b></span><span>Time <b id=t>30</b></span></div>
+<div id=g></div><button id=btn onclick=start()>Start</button></div>
+<script>
+const g=document.getElementById('g'),$=id=>document.getElementById(id);
+let score=0,best=0,time=30,cur=-1,playing=false,tick,pop;
+const holes=[...Array(9)].map((_,i)=>{const d=document.createElement('div');d.className='h';d.onpointerdown=()=>whack(i);g.append(d);return d});
+function show(i){holes.forEach((h,j)=>{h.classList.toggle('up',j==i);h.textContent=j==i?'🐹':''});cur=i}
+function next(){
+  if(!playing)return;
+  let i;do i=Math.random()*9|0;while(i==cur);
+  show(i);pop=setTimeout(next,Math.max(400,900-score*12));
+}
+function whack(i){
+  if(!playing||i!=cur)return;
+  score++;best=Math.max(best,score);$('s').textContent=score;$('b').textContent=best;
+  clearTimeout(pop);show(-1);pop=setTimeout(next,150);
+}
+function start(){
+  score=0;time=30;playing=true;$('s').textContent=0;$('t').textContent=30;$('btn').style.display='none';
+  clearInterval(tick);tick=setInterval(()=>{$('t').textContent=--time;if(time<=0)end()},1000);next();
+}
+function end(){playing=false;clearInterval(tick);clearTimeout(pop);show(-1);$('btn').textContent='Play again';$('btn').style.display='inline-block'}
+</script>

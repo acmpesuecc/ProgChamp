@@ -16,17 +16,23 @@ export interface Session {
  * @param expiresInDays - Number of days until session expires (default: 7)
  * @returns Created session object
  */
-export async function createSession(userId: string, expiresInDays: number = 7): Promise<Session> {
+export async function createSession(
+  userId: string,
+  expiresInDays: number = 7,
+): Promise<Session> {
   const sessionId = nanoid(32);
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + expiresInDays);
-  
-  const [session] = await db.insert(sessions).values({
-    id: sessionId,
-    userId,
-    expiresAt,
-  }).returning();
-  
+
+  const [session] = await db
+    .insert(sessions)
+    .values({
+      id: sessionId,
+      userId,
+      expiresAt,
+    })
+    .returning();
+
   return session!;
 }
 
@@ -39,17 +45,17 @@ export async function getSession(sessionId: string): Promise<Session | null> {
   const session = await db.query.sessions.findFirst({
     where: eq(sessions.id, sessionId),
   });
-  
+
   if (!session) {
     return null;
   }
-  
+
   // Check if expired
   if (session.expiresAt < new Date()) {
     await deleteSession(sessionId);
     return null;
   }
-  
+
   return session;
 }
 
@@ -78,14 +84,40 @@ export async function cleanupExpiredSessions(): Promise<void> {
 
 /**
  * Extend session expiration
+ * - Returns false if session does not exist
+ * - Only extends if session is within 2 days of expiry, skips DB write otherwise
  * @param sessionId - Session ID
  * @param expiresInDays - Number of days to extend (default: 7)
+ * @returns true if extended, false if session not found or not yet close to expiry
  */
-export async function extendSession(sessionId: string, expiresInDays: number = 7): Promise<void> {
+export async function extendSession(
+  sessionId: string,
+  expiresInDays: number = 7,
+): Promise<boolean> {
+  const existing = await db.query.sessions.findFirst({
+    where: eq(sessions.id, sessionId),
+  });
+
+  // Session does not exist
+  if (!existing) {
+    return false;
+  }
+
+  const twoDaysFromNow = new Date();
+  twoDaysFromNow.setDate(twoDaysFromNow.getDate() + 2);
+
+  // Session is not close to expiry yet, skip the DB write
+  if (existing.expiresAt > twoDaysFromNow) {
+    return false;
+  }
+
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + expiresInDays);
-  
-  await db.update(sessions)
+
+  await db
+    .update(sessions)
     .set({ expiresAt })
     .where(eq(sessions.id, sessionId));
+
+  return true;
 }

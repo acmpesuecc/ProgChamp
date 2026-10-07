@@ -5,7 +5,13 @@
   "private": true,
   "devDependencies": {
     "@types/bun": "latest",
-    "drizzle-kit": "^0.31.8"
+    "@typescript-eslint/eslint-plugin": "^8.57.0",
+    "@typescript-eslint/parser": "^8.57.0",
+    "drizzle-kit": "^0.31.8",
+    "eslint": "^10.0.3",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.1"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -23,6 +29,7 @@
     "@libsql/client": "^0.17.0",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.11.4",
+    "hono-rate-limiter": "^0.5.3",
     "nanoid": "^5.1.6",
     "zod": "^4.3.5"
   }

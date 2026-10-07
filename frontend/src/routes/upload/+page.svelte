@@ -1,0 +1,533 @@
+<script lang="ts">
+
+  import { enhance } from '$app/forms';
+  import { goto } from '$app/navigation';
+  import { page } from '$app/state';
+
+  import Navbar     from '$lib/components/Navbar.svelte';
+  import Footer     from '$lib/components/Footer.svelte';
+  import LoginModal from '$lib/components/LoginModal.svelte';
+
+  // AUTH
+  let session = $derived(page.data.session);
+  let user    = $derived(session?.user);
+
+  let isLoggedIn = $derived(session?.authenticated ?? false);
+  let isAdmin    = $derived(user?.userType === 'admin');
+
+  // LOGIN MODAL STATE
+  let showLogin = $state(false);
+
+  // GAME MEDIA
+  let video        = $state<File | null>(null);
+  let videoPreview = $state<string | null>(null);
+
+  function goTo(path: string, requiresAuth = false) {
+    if (requiresAuth && !isLoggedIn) showLogin = true;
+    else goto(path);
+  }
+
+  // FORM STATE
+  let title        = $state('');
+  let description  = $state('');
+  let url          = $state('');
+  let thumbnail    = $state<File | null>(null);
+  let preview      = $state<string | null>(null);
+  let isDragging   = $state(false);
+  let isSubmitting = $state(false);
+  let submitted    = $state(false);
+
+ 
+  let errorMessage = $state<string | null>(null);
+
+  // FILE HANDLING
+  function handleFile(file: File) {
+    if (!file.type.startsWith('image/')) return;
+    thumbnail = file;
+    preview   = URL.createObjectURL(file);
+  }
+
+  function handleInputChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files?.[0]) handleFile(input.files[0]);
+  }
+
+  function handleDrop(e: DragEvent) {
+    e.preventDefault();
+    isDragging = false;
+    const file = e.dataTransfer?.files[0];
+    if (file) handleFile(file);
+  }
+
+  function handleDragOver(e: DragEvent) { e.preventDefault(); isDragging = true; }
+  function handleDragLeave() { isDragging = false; }
+
+  function handleVideoChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !file.type.startsWith('video/')) return;
+    video = file;
+    videoPreview = file.name;
+  }
+  // TAGS
+  let selectedTagIds = $state<string[]>([]);
+  let tagsOpen       = $state(false);
+  let tagDropdown    = $state<HTMLDivElement | null>(null);
+  
+  let availableTags = $derived<{ id: string; name: string }[]>(page.data.tags ?? []);
+  let selectedTags  = $derived(availableTags.filter((t) => selectedTagIds.includes(t.id)));
+  
+  function removeTag(id: string) {
+    selectedTagIds = selectedTagIds.filter((t) => t !== id);
+  }
+  
+  // close the dropdown on outside click / Escape
+  function handleWindowClick(e: MouseEvent) {
+    if (tagsOpen && tagDropdown && !tagDropdown.contains(e.target as Node)) tagsOpen = false;
+  }
+  function handleWindowKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') tagsOpen = false;
+  }
+
+  let dropzone = $state<HTMLDivElement | null>(null);
+</script>
+
+<svelte:head>
+  <title>UPLOAD // PROGCHAMP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Pixelify+Sans:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet" />
+</svelte:head>
+
+<svelte:window onclick={handleWindowClick} onkeydown={handleWindowKeydown} />
+
+<!-- NAV -->
+<Navbar
+  {isLoggedIn}
+  {isAdmin}
+  avatarUrl={user?.avatarUrl}
+  userName={user?.name}
+  onLoginClick={() => (showLogin = true)}
+/>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div class="header-inner">
+    <div class="header-eyebrow">// DEVELOPER TERMINAL</div>
+    <h1 class="header-title">UPLOAD YOUR <span>GAME</span></h1>
+    <p class="header-sub">Submit your build for review. Once approved, it goes live in the Vault.</p>
+  </div>
+</header>
+
+<!-- UPLOAD FORM -->
+<main class="upload-main">
+  <div class="upload-grid">
+
+    <!-- LEFT: FORM -->
+    <div class="form-panel">
+      <div class="panel-corner tl"></div>
+      <div class="panel-corner br"></div>
+      <div class="panel-eyebrow">// GAME DETAILS</div>
+
+      <form
+        method="POST"
+        enctype="multipart/form-data"
+        class="upload-form"
+        use:enhance={({ formData }) => {
+          // Prepend https:// to url if not already present
+          const rawUrl = formData.get('gameUrl') as string;
+          if (rawUrl && !rawUrl.startsWith('http')) {
+            formData.set('gameUrl', `https://${rawUrl}`);
+          }
+          if (thumbnail) formData.set('thumbnail', thumbnail);
+          if (video) formData.set('video', video);
+          isSubmitting = true;
+          return async ({ result, update }) => {
+            isSubmitting = false;
+            errorMessage = null;
+            if (result.type === 'success' && result.data?.success) {
+              submitted = true;
+              setTimeout(() => {
+                submitted = title = description = url = genre = '';
+                selectedTagIds = [];
+                thumbnail = preview = null;
+                video = videoPreview = null;
+              }, 3000);
+            } else if (result.type === 'success' && !result.data?.success) {
+              errorMessage = result.data?.message ?? 'Submission failed';
+            }
+            await update();
+          };
+        }}
+      >
+
+        <div class="form-group">
+          <label class="form-label" for="title">GAME TITLE</label>
+          <input
+            id="title"
+            name="title"
+            class="form-input"
+            placeholder="e.g. VOID SYNDICATE"
+            bind:value={title}
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <span class="form-label" id="tags-label">TAGS</span>
+        
+          <div class="tag-dropdown" bind:this={tagDropdown}>
+            <button
+              type="button"
+              class="form-input form-select tag-trigger"
+              aria-expanded={tagsOpen}
+              aria-labelledby="tags-label"
+              onclick={() => (tagsOpen = !tagsOpen)}
+            >
+              {selectedTags.length ? `${selectedTags.length} SELECTED` : 'SELECT TAGS...'}
+            </button>
+        
+            <div class="tag-panel" class:open={tagsOpen}>
+              {#each availableTags as tag (tag.id)}
+                <label class="tag-option">
+                  <input type="checkbox" name="tagIds" value={tag.id} bind:group={selectedTagIds} />
+                  <span>{tag.name.toUpperCase()}</span>
+                </label>
+              {:else}
+                <div class="tag-empty">NO TAGS AVAILABLE</div>
+              {/each}
+            </div>
+          </div>
+        
+          {#if selectedTags.length}
+            <div class="tag-chips">
+              {#each selectedTags as tag (tag.id)}
+                <span class="tag-chip">
+                  {tag.name.toUpperCase()}
+                  <button type="button" aria-label="Remove {tag.name}" onclick={() => removeTag(tag.id)}>✕</button>
+                </span>
+              {/each}
+            </div>
+          {/if}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="description">DESCRIPTION</label>
+          <textarea
+            id="description"
+            name="description"
+            class="form-input form-textarea"
+            placeholder="Describe your game — genre, mechanics, what makes it worth playing..."
+            bind:value={description}
+            rows="5"
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="url">GAME URL</label>
+          <div class="input-with-prefix">
+            <span class="input-prefix">https://</span>
+            <input
+              id="url"
+              name="gameUrl"
+              class="form-input input-prefixed"
+              placeholder="yourgame.itch.io"
+              bind:value={url}
+              required
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="btn-submit"
+          disabled={isSubmitting || submitted || !title || !description || !url}
+        >
+          {#if submitted}
+            <span class="success-text">✓ SUBMITTED FOR REVIEW</span>
+          {:else if isSubmitting}
+            <span class="loading-dots">UPLOADING<span>.</span><span>.</span><span>.</span></span>
+          {:else}
+            SUBMIT GAME ↗
+          {/if}
+          {#if errorMessage}
+            <p class="error-note">{errorMessage}</p>
+          {/if}
+        </button>
+
+        {#if submitted}
+          <p class="submit-note">Your game has been queued for review.</p>
+        {/if}
+
+      </form>
+    </div>
+
+    <!-- RIGHT: THUMBNAIL + VIDEO -->
+    <div class="thumb-panel">
+      <div class="panel-corner tl"></div>
+      <div class="panel-corner br"></div>
+      <div class="panel-eyebrow">// THUMBNAIL</div>
+
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div
+        class="dropzone"
+        class:dragover={isDragging}
+        class:has-preview={!!preview}
+        bind:this={dropzone}
+        ondrop={handleDrop}
+        ondragover={handleDragOver}
+        ondragleave={handleDragLeave}
+      >
+        {#if preview}
+          <img src={preview} alt="Thumbnail preview" class="thumb-preview" />
+          <div class="thumb-overlay">
+            <label class="thumb-change-btn" for="file-input">CHANGE IMAGE</label>
+          </div>
+        {:else}
+          <div class="dropzone-content">
+            <div class="drop-icon">⊞</div>
+            <div class="drop-label">DROP IMAGE HERE</div>
+            <div class="drop-sub">or click to browse</div>
+            <div class="drop-hint">PNG, JPG, WEBP · Max 5MB</div>
+          </div>
+        {/if}
+        <label for="file-input" class="dropzone-label" aria-label="Upload thumbnail"></label>
+        <input
+          id="file-input"
+          type="file"
+          accept="image/*"
+          class="file-input-hidden"
+          onchange={handleInputChange}
+        />
+      </div>
+
+      <div class="tips-block">
+        <div class="tips-title">// SUBMISSION TIPS</div>
+        <ul class="tips-list">
+          <li>Thumbnail should be 16:9, at least 800×450px</li>
+          <li>URL must point to a playable, public build</li>
+          <li>Upload content must not contain sensitive or offensive information of any kind</li>
+        </ul>
+      </div>
+
+      <div class="video-section">
+        <div class="panel-eyebrow" style="margin-top: 28px;">// GAMEPLAY VIDEO</div>
+        <div class="video-drop" class:has-video={!!video}>
+          {#if video}
+            <div class="video-name">
+              <span class="video-icon">▶</span>
+              <span>{videoPreview}</span>
+            </div>
+            <button class="video-clear" onclick={() => { video = null; videoPreview = null; }}>✕ REMOVE</button>
+          {:else}
+            <div class="dropzone-content">
+              <div class="drop-icon">▶</div>
+              <div class="drop-label">GAMEPLAY VIDEO</div>
+              <div class="drop-sub">or click to browse</div>
+              <div class="drop-hint">MP4, WEBM · Max 50MB</div>
+            </div>
+          {/if}
+          <label for="video-input" class="dropzone-label" aria-label="Upload video"></label>
+          <input
+            id="video-input"
+            type="file"
+            accept="video/*"
+            class="file-input-hidden"
+            onchange={handleVideoChange}
+          />
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<Footer {isAdmin} />
+
+<!-- LOGIN MODAL -->
+<LoginModal open={showLogin} onClose={() => (showLogin = false)} />
+
+<style>
+  /* PAGE HEADER */
+  .page-header {
+    position: relative; z-index: 10;
+    padding: 160px 60px 80px;
+    background: radial-gradient(ellipse at 30% 50%, rgba(124,77,191,0.22) 0%, transparent 60%);
+    overflow: hidden;
+  }
+  .header-inner { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; text-align: center; }
+  .header-eyebrow {
+    font-family: 'VT323', monospace;
+    font-size: 1.3rem; letter-spacing: .35em; text-transform: uppercase;
+    color:var(--gold); 
+    margin-bottom: 16px;
+  }
+  .header-title {
+    font-family: 'Press Start 2P', sans-serif;
+    font-size: clamp(3.5rem, 8vw, 9rem); letter-spacing: .04em; line-height: .95;
+    margin-bottom: 20px;
+  }
+  .header-title span { color: var(--neon-yellow);  }
+  .header-sub {
+    font-family: 'VT323', monospace;
+    font-size: 1.28rem; color: rgba(245,205,210,0.65);
+    letter-spacing: .08em; line-height: 1.8; max-width: 500px;
+    margin-left: auto; margin-right: auto;
+  }
+
+  /* MAIN LAYOUT */
+  .upload-main { position: relative; z-index: 10; padding: 60px; min-height: 60vh; }
+  .upload-grid {
+    display: grid; grid-template-columns: 1fr 420px;
+    gap: 40px; max-width: 1200px; margin: 0 auto;
+  }
+
+  /* PANELS */
+  .form-panel, .thumb-panel {
+    position: relative;
+    background: rgba(30,14,30,.6);
+    border: 1px solid rgba(232,93,130,0.27);
+    padding: 40px;
+    backdrop-filter: blur(8px);
+    border-radius: 10px;
+  }
+  .panel-corner { position: absolute; width: 20px; height: 20px; }
+  .panel-corner.tl { top: 12px; left: 12px; border-top: 2px solid var(--neon-cyan); border-left: 2px solid var(--neon-cyan); }
+  .panel-corner.br { bottom: 12px; right: 12px; border-bottom: 2px solid var(--neon-cyan); border-right: 2px solid var(--neon-cyan); }
+  .panel-eyebrow {
+    font-family: 'VT323', monospace;
+    font-size: 1.35rem; letter-spacing: .3em; text-transform: uppercase;
+    color:var(--neon-cyan); 
+    margin-bottom: 28px;
+  }
+
+  /* FORM */
+  .upload-form { display: flex; flex-direction: column; gap: 24px; }
+  .form-group  { display: flex; flex-direction: column; gap: 8px; }
+  .form-label  {
+    font-family: 'VT323', monospace;
+    font-size: 1.35rem; letter-spacing: .2em; text-transform: uppercase;
+    color: rgba(232,93,130,0.6);
+  }
+  .form-input {
+    background: rgba(232,93,130,0.18); border: 1px solid rgba(232,93,130,0.3);
+    color: var(--text); font-family: 'VT323', monospace;
+    font-size: 1.3rem; letter-spacing: .06em;
+    padding: 12px 16px; outline: none;
+    transition: border-color .3s, box-shadow .3s;
+    border-radius: 10px;
+    width: 100%;
+  }
+  .form-input:focus { border-color: var(--neon-cyan);  }
+  .form-input::placeholder { color: rgba(245,205,210,0.45); }
+  .form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300fff9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 16px center; cursor: var(--cursor-pointer);
+  }
+  .form-select option { background: #1E0E1E; color: var(--text); }
+  .form-textarea { resize: vertical; min-height: 120px; font-family: 'VT323', monospace; line-height: 1.6; }
+  .input-with-prefix { display: flex; align-items: stretch; }
+  .input-prefix {
+    font-family: 'VT323', monospace; font-size: 1.4rem; letter-spacing: .05em;
+    background: rgba(232,93,130,0.21); border: 1px solid rgba(232,93,130,0.3); border-right: none;
+    color: rgba(232,93,130,0.5); padding: 12px 14px; display: flex; align-items: center; flex-shrink: 0;
+    border-radius: 10px;
+  }
+  .tag-dropdown { position: relative; }
+  .tag-trigger  { text-align: left; cursor: var(--cursor-pointer); }
+  .tag-panel {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 20;
+    max-height: 260px; overflow-y: auto; padding: 8px;
+    background: #1E0E1E; border: 1px solid rgba(232,93,130,0.3); border-radius: 10px;
+  }
+  .tag-panel.open { display: block; }
+  .tag-option {
+    display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 6px;
+    font-family: 'VT323', monospace; font-size: 1.3rem; letter-spacing: .06em;
+    color: var(--text); cursor: var(--cursor-pointer);
+  }
+  .tag-option:hover { background: rgba(232,93,130,0.18); }
+  .tag-option input { accent-color: var(--neon-cyan); width: 16px; height: 16px; }
+  .tag-empty { font-family: 'VT323', monospace; font-size: 1.2rem; color: rgba(245,205,210,0.45); padding: 8px 10px; }
+  .tag-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag-chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 2px 10px; border-radius: 10px;
+    font-family: 'VT323', monospace; font-size: 1.15rem; letter-spacing: .08em;
+    color: var(--neon-cyan); border: 1px solid rgba(0,255,249,0.35); background: rgba(232,93,130,0.18);
+  }
+  .tag-chip button { background: none; border: none; color: inherit; font-family: inherit; cursor: var(--cursor-pointer); }
+  .input-prefixed { border-radius: 10px; border-left: none; }
+
+  .btn-submit {
+    font-family: 'VT323', monospace;
+    font-size: 1.3rem; letter-spacing: .2em; text-transform: uppercase;
+    background: transparent; color: var(--neon-yellow); border: 1px solid var(--neon-yellow);
+    padding: 18px 32px; cursor: var(--cursor-pointer); transition: all .3s; margin-top: 8px;
+    border-radius: 10px;
+     
+  }
+  .btn-submit:hover:not(:disabled) { background: rgba(240,137,158,0.23);  transform: translateY(-2px); }
+  .btn-submit:disabled { opacity: .4; cursor: not-allowed; }
+  .success-text { color: var(--neon-cyan);  }
+  .submit-note {
+    font-family: 'VT323', monospace; font-size: 1.3rem; letter-spacing: .1em;
+    color: rgba(232,93,130,0.5); text-align: center; line-height: 1.6;
+  }
+
+  /* DROPZONE */
+  .dropzone {
+    position: relative; border: 1px dashed rgba(232,93,130,0.4);
+    min-height: 240px; display: flex; align-items: center; justify-content: center;
+    transition: border-color .3s, background .3s; cursor: var(--cursor-pointer); overflow: hidden;
+    border-radius: 10px;
+  }
+  .dropzone.dragover { border-color: var(--neon-cyan); background: rgba(232,93,130,0.2);  }
+  .dropzone.has-preview { border-style: solid; border-color: rgba(232,93,130,0.35); }
+  .dropzone:hover { border-color: rgba(232,93,130,0.5); }
+  .dropzone-label { position: absolute; inset: 0; cursor: var(--cursor-pointer); z-index: 1; }
+  .file-input-hidden { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+  .dropzone-content { text-align: center; pointer-events: none; padding: 20px; }
+  .drop-icon { font-size: 3.5rem; color: rgba(232,93,130,0.4); margin-bottom: 12px; display: block; line-height: 1; transition: color .3s; }
+  .dropzone:hover .drop-icon { color: rgba(232,93,130,0.5); }
+  .dragover .drop-icon { color: var(--neon-cyan); }
+  .drop-label { font-family: 'Press Start 2P', sans-serif; font-size: 1.4rem; letter-spacing: .1em; color: rgba(245,205,210,0.75); margin-bottom: 6px; }
+  .drop-sub   { font-family: 'VT323', monospace; font-size: 1.3rem; letter-spacing: .15em; color: rgba(245,205,210,0.5); margin-bottom: 12px; }
+  .drop-hint  { font-family: 'VT323', monospace; font-size: 1.08rem; letter-spacing: .1em; color: rgba(232,93,130,0.45); border: 1px solid rgba(232,93,130,0.25); padding: 4px 12px; display: inline-block; }
+  .thumb-preview { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+  .thumb-overlay { position: absolute; inset: 0; background: rgba(36,19,44,.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .3s; z-index: 2; }
+  .dropzone.has-preview:hover .thumb-overlay { opacity: 1; }
+  .thumb-change-btn {
+    font-family: 'VT323', monospace; font-size: 1.4rem; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--neon-cyan); border: 1px solid var(--neon-cyan); padding: 10px 24px; cursor: var(--cursor-pointer);
+    border-radius: 10px;
+     background: rgba(232,93,130,0.21);
+  }
+
+  /* TIPS */
+  .tips-block { margin-top: 28px; border: 1px solid rgba(240,137,158,0.25); padding: 20px 24px; background: rgba(240,137,158,0.17); border-radius: 10px; }
+  .tips-title { font-family: 'VT323', monospace; font-size: 1.08rem; letter-spacing: .25em; text-transform: uppercase; color: var(--neon-yellow);  margin-bottom: 14px; }
+  .tips-list  { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .tips-list li { font-family: 'VT323', monospace; font-size: 1.3rem; letter-spacing: .05em; line-height: 1.5; color: rgba(245,205,210,0.6); padding-left: 14px; position: relative; }
+  .tips-list li::before { content: '›'; position: absolute; left: 0; color: var(--neon-yellow); font-size: 1.3rem; }
+
+  /* LOADING DOTS */
+  .loading-dots span              { animation: dotBlink 1.2s infinite; display: inline-block; }
+  .loading-dots span:nth-child(2) { animation-delay: .2s; }
+  .loading-dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes dotBlink { 0%,80%,100% { opacity:0 } 40% { opacity:1 } }
+  .video-drop{position:relative;border:1px dashed rgba(124,77,191,0.4);min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:border-color .3s,background .3s;cursor: var(--cursor-pointer);overflow:hidden;border-radius: 10px;}
+  .video-drop:hover{border-color:rgba(124,77,191,0.5);}
+  .video-drop.has-video{border-style:solid;border-color:rgba(124,77,191,0.45);background:rgba(124,77,191,0.18);}
+  .video-name{display:flex;align-items:center;gap:10px;font-family:'VT323',monospace;font-size:1.25rem;letter-spacing:.08em;color:rgba(245,205,210,0.7);padding:0 20px;text-align:center;}
+  .video-icon{color:var(--neon-purple);}
+  .video-clear{font-family:'VT323',monospace;font-size:1.1rem;letter-spacing:.15em;color:rgba(124,77,191,0.6);border:1px solid rgba(124,77,191,0.35);background:transparent;padding:6px 14px;cursor: var(--cursor-pointer);transition:all .25s;border-radius: 10px;}
+  .video-clear:hover{color:var(--neon-pink);border-color:var(--neon-pink);}
+  .error-note {
+    font-family: 'VT323', monospace; font-size: 1.3rem; letter-spacing: .1em;
+    color: rgba(255, 80, 80, .8); text-align: center; line-height: 1.6;
+    border: 1px solid rgba(255, 80, 80, .2); padding: 10px 16px;
+    background: rgba(255, 0, 0, .04);
+    border-radius: 10px;
+  }
+</style>
