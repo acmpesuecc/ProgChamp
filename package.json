@@ -4,12 +4,14 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  
   "dependencies": {
     "@auth/core": "^0.41.1",
-    "@auth/sveltekit": "^1.11.1"
+    "@auth/sveltekit": "^1.11.1",
+    "drizzle": "^1.4.0",
+    "drizzle-orm": "^0.45.4"
   },
   "devDependencies": {
-    "@types/node": "^25.0.9"
+    "@types/node": "^25.0.9",
+    "drizzle-kit": "^0.31.11"
   }
 }
